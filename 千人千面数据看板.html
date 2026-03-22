@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>优鲜 APP 推荐体系经营看板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="./data.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#e33f32', // brighter accent red
+                        success: '#23794b', // muted green
+                        danger: '#e33f32',  // brighter accent red
+                        base: '#f4f5f7',
+                        surface: '#ffffff',
+                        border: '#e5e7eb',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --background: #f4f5f7;
+            --foreground: #1f2429;
+            --card: #ffffff;
+            --card-foreground: #1f2429;
+            --muted: #eef1f4;
+            --muted-foreground: #6b7280;
+            --border: #e5e7eb;
+            --border-strong: #d1d5db;
+            --primary: #e33f32;
+            --primary-soft: #fff2f0;
+            --primary-ink: #e33f32;
+            --success-ink: #23794b;
+            --surface-tint: rgba(255, 255, 255, 0.92);
+        }
+        body { background-color: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: var(--foreground); }
+        header {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            border-color: var(--border);
+        }
+        main {
+            position: relative;
+        }
+        section.bg-surface {
+            position: relative;
+            background: #ffffff;
+            border-color: var(--border);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: none;
+        }
+        section.bg-surface::before {
+            content: '';
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(227,63,50,0.62), rgba(227,63,50,0.08) 26%, rgba(227,63,50,0) 50%);
+        }
+        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
+        .card-shadow-hover:hover { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .metric-card-clean {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            background: linear-gradient(180deg, var(--card), var(--muted));
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+            transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+        }
+        .metric-card-clean::before {
+            content: '';
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 4px;
+            background: var(--border-strong);
+        }
+        .metric-card-clean:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+        }
+        .metric-card-clean.is-active {
+            border-color: var(--border-strong);
+            box-shadow: 0 14px 32px rgba(227, 63, 50, 0.08);
+        }
+        .metric-card-clean.is-active::before {
+            background: var(--primary);
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+        [v-cloak] { display: none; }
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 300ms; }
+        .attr-track { position: relative; background: #f3f4f6; border-radius: 9999px; overflow: hidden; }
+        .attr-track::after { content: ''; position: absolute; inset: 0 auto 0 50%; width: 1px; background: #d1d5db; transform: translateX(-0.5px); }
+        .dashboard-shell {
+            position: relative;
+        }
+        .dashboard-shell::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(148,163,184,0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148,163,184,0.045) 1px, transparent 1px);
+            background-size: 24px 24px;
+            mask-image: linear-gradient(180deg, rgba(0,0,0,0.3), transparent 75%);
+        }
+        .header-kicker {
+            letter-spacing: 0.32em;
+            text-transform: uppercase;
+            font-size: 0.68rem;
+            color: var(--muted-foreground);
+        }
+        .brand-mark {
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 0.95rem;
+            border: 1px solid rgba(227,63,50,0.24);
+            background: #ffffff;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+        }
+        .header-panel {
+            min-width: 17rem;
+            border: 1px solid var(--border);
+            background: #ffffff;
+            border-radius: 1.25rem;
+        }
+        .hero-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+            gap: 1rem;
+        }
+        .metric-hero-card,
+        .metric-side-card,
+        .summary-card {
+            border: 1px solid var(--border);
+            background: #ffffff;
+            border-radius: 1.5rem;
+        }
+        .metric-hero-card {
+            padding: 1.75rem;
+            min-height: 18rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .metric-side-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+        .metric-side-card {
+            padding: 1.25rem;
+            min-height: 8.4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .metric-kicker {
+            font-size: 0.73rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted-foreground);
+        }
+        .metric-value-primary {
+            font-size: clamp(2.7rem, 5vw, 4.8rem);
+            line-height: 0.98;
+            letter-spacing: -0.05em;
+            color: var(--primary-ink);
+            font-weight: 700;
+        }
+        .metric-value-secondary {
+            font-size: 2rem;
+            line-height: 1;
+            letter-spacing: -0.04em;
+            font-weight: 700;
+            color: #20242a;
+        }
+        .metric-divider {
+            height: 1px;
+            background: linear-gradient(90deg, rgba(227,63,50,0.68), rgba(227,63,50,0.12) 22%, rgba(229,231,235,1) 52%, rgba(229,231,235,1) 100%);
+        }
+        .signal-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.9);
+            color: var(--muted-foreground);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .signal-chip.is-positive {
+            color: var(--primary);
+            border-color: rgba(227,63,50,0.22);
+            background: #ffffff;
+        }
+        .signal-chip.is-negative {
+            color: var(--success-ink);
+            border-color: rgba(35,121,75,0.22);
+            background: rgba(228, 244, 234, 0.85);
+        }
+        .signal-chip.is-neutral {
+            color: var(--muted-foreground);
+        }
+        .metric-insight-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.75rem;
+        }
+        .metric-mini {
+            padding: 0.95rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 1.1rem;
+            background: #fbfcfd;
+        }
+        .metric-mini-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--muted-foreground);
+            margin-bottom: 0.45rem;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 1fr 1fr;
+            gap: 1rem;
+        }
+        .summary-card {
+            padding: 1.35rem;
+            min-height: 12.5rem;
+        }
+        .summary-card.is-highlight {
+            background: #ffffff;
+            border-color: rgba(227,63,50,0.32);
+            box-shadow: inset 0 0 0 1px rgba(227,63,50,0.08);
+        }
+        .summary-card-title {
+            font-size: 0.76rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--muted-foreground);
+            margin-bottom: 0.9rem;
+        }
+        .summary-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .summary-list li {
+            position: relative;
+            padding-left: 1rem;
+            line-height: 1.65;
+            color: #40464d;
+        }
+        .summary-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.65rem;
+            width: 0.35rem;
+            height: 0.35rem;
+            border-radius: 999px;
+            background: rgba(227,63,50,0.78);
+        }
+        .summary-list.is-ordered {
+            counter-reset: summary-step;
+        }
+        .summary-list.is-ordered li {
+            padding-left: 1.75rem;
+        }
+        .summary-list.is-ordered li::before {
+            counter-increment: summary-step;
+            content: counter(summary-step);
+            width: 1.1rem;
+            height: 1.1rem;
+            top: 0.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        @media (max-width: 1100px) {
+            .hero-grid,
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .metric-side-grid,
+            .metric-insight-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+<div id="app" v-cloak class="min-h-screen pb-20">
+    
+    <!-- Header & Filters -->
+    <header class="bg-surface border-b border-border sticky top-0 z-50">
+        <div class="px-8 py-4 flex justify-between items-center max-w-[1600px] mx-auto">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-lg">优</div>
+                <h1 class="text-2xl font-bold text-gray-900 tracking-tight">优鲜推荐模块看盘V1.0</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-gray-500 font-medium">分析月份</span>
+                <div class="relative">
+                    <select v-model="currentMonth" class="appearance-none bg-base border border-border rounded-md pl-4 pr-10 py-2 text-sm font-semibold text-gray-700 outline-none focus:border-primary cursor-pointer">
+                        <option v-for="m in allMonths" :key="m" :value="m">{{ formatMonth(m) }}</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="px-8 py-6 max-w-[1600px] mx-auto space-y-6">
+        
+        <!-- Core Metric Cards -->
+        <section class="grid grid-cols-4 gap-6">
+            <div class="metric-card-clean p-6">
+                <div class="absolute -bottom-4 -right-4 text-blue-500 opacity-5 pointer-events-none">
+                    <i data-lucide="layout-grid" style="width: 100px; height: 100px;"></i>
+                </div>
+                <div class="relative z-10 flex justify-between items-center mb-4">
+                    <span class="text-sm font-semibold text-blue-900/70 flex items-center gap-1">推荐模块数 <i data-lucide="info" class="w-4 h-4"></i></span>
+                </div>
+                <div class="relative z-10 text-3xl font-bold text-blue-950 mb-2">{{ metrics.modCount.val }}</div>
+            </div>
+
+            <div @click="toggleCard(2)" class="metric-card-clean p-6 cursor-pointer" :class="{ 'is-active': activeCard === 2 }">
+                <div class="absolute -bottom-4 -right-4 text-rose-500 opacity-5 pointer-events-none">
+                    <i data-lucide="gem" style="width: 100px; height: 100px;"></i>
+                </div>
+                <div class="relative z-10 flex justify-between items-center mb-4">
+                    <span class="text-sm font-semibold text-rose-900/70 flex items-center gap-1">推荐加权 UV 价值 <i data-lucide="info" class="w-4 h-4"></i></span>
+                </div>
+                <div class="relative z-10 text-3xl font-bold text-rose-950 mb-2">¥{{ metrics.wUV.val }}</div>
+                <div class="relative z-10 flex items-center gap-1 text-sm font-medium" :class="metrics.wUV.momStr.includes('+') ? 'text-rose-600' : (metrics.wUV.momStr.includes('-') ? 'text-emerald-600' : 'text-rose-800/60')">
+                    <svg v-if="metrics.wUV.icon === 'trending-up'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                    <svg v-else-if="metrics.wUV.icon === 'trending-down'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"></polyline><polyline points="16 17 22 17 22 11"></polyline></svg>
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>{{ metrics.wUV.momStr }}</span>
+                </div>
+            </div>
+
+            <div @click="toggleCard(3)" class="metric-card-clean p-6 cursor-pointer" :class="{ 'is-active': activeCard === 3 }">
+                <div class="absolute -bottom-4 -right-4 text-emerald-500 opacity-5 pointer-events-none">
+                    <i data-lucide="mouse-pointer-click" style="width: 100px; height: 100px;"></i>
+                </div>
+                <div class="relative z-10 flex justify-between items-center mb-4">
+                    <span class="text-sm font-semibold text-emerald-900/70 flex items-center gap-1">推荐加权支付转化率 <i data-lucide="info" class="w-4 h-4"></i></span>
+                </div>
+                <div class="relative z-10 text-3xl font-bold text-emerald-950 mb-2">{{ metrics.wCVR.val }}</div>
+                <div class="relative z-10 flex items-center gap-1 text-sm font-medium" :class="metrics.wCVR.momStr.includes('+') ? 'text-rose-600' : (metrics.wCVR.momStr.includes('-') ? 'text-emerald-600' : 'text-emerald-800/60')">
+                    <svg v-if="metrics.wCVR.icon === 'trending-up'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                    <svg v-else-if="metrics.wCVR.icon === 'trending-down'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"></polyline><polyline points="16 17 22 17 22 11"></polyline></svg>
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>{{ metrics.wCVR.momStr }}</span>
+                </div>
+            </div>
+
+            <div @click="toggleCard(4)" class="metric-card-clean p-6 cursor-pointer" :class="{ 'is-active': activeCard === 4 }">
+                <div class="absolute -bottom-4 -right-4 text-violet-500 opacity-5 pointer-events-none">
+                    <i data-lucide="globe" style="width: 100px; height: 100px;"></i>
+                </div>
+                <div class="relative z-10 flex justify-between items-center mb-4">
+                    <span class="text-sm font-semibold text-violet-900/70 flex items-center gap-1">全站 UV 价值 <i data-lucide="info" class="w-4 h-4"></i></span>
+                </div>
+                <div class="relative z-10 text-3xl font-bold text-violet-950 mb-2">¥{{ metrics.siteUV.val }}</div>
+                <div class="relative z-10 flex items-center gap-1 text-sm font-medium" :class="metrics.siteUV.momStr.includes('+') ? 'text-rose-600' : (metrics.siteUV.momStr.includes('-') ? 'text-emerald-600' : 'text-violet-800/60')">
+                    <svg v-if="metrics.siteUV.icon === 'trending-up'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                    <svg v-else-if="metrics.siteUV.icon === 'trending-down'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"></polyline><polyline points="16 17 22 17 22 11"></polyline></svg>
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>{{ metrics.siteUV.momStr }}</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Intelligent Analysis -->
+        <section class="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col gap-4 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[100px] pointer-events-none"></div>
+            <div class="flex items-center gap-2 mb-2">
+                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                </div>
+                <h2 class="text-lg font-bold text-gray-900">本月经营摘要</h2>
+            </div>
+            
+            <div class="grid grid-cols-[100px_1fr] gap-4 items-start text-sm">
+                <div class="font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded text-center">整体判断</div>
+                <div class="text-gray-700 pt-1 leading-relaxed font-medium">{{ aiAnalysis.overview }}</div>
+                
+                <div class="font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded text-center">主要变化</div>
+                <ul class="text-gray-700 pt-1 leading-relaxed list-disc list-inside space-y-1">
+                    <li v-for="(change, idx) in aiAnalysis.drivers" :key="idx">{{ change }}</li>
+                </ul>
+                
+                <div class="font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded text-center">下一步动作</div>
+                <ul class="text-gray-700 pt-1 leading-relaxed list-decimal list-inside space-y-1">
+                    <li v-for="(adv, idx) in aiAnalysis.actions" :key="idx">{{ adv }}</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Dynamic Expanded Sections (Trend Chart) -->
+        <div v-show="activeCard !== null" class="space-y-6 transition-all">
+            <!-- Trend Chart -->
+            <section class="bg-surface rounded-xl border border-border p-6 shadow-sm">
+                <h2 class="text-lg font-bold text-gray-900 mb-6">{{ activeCardTitle }} - 近 12 个月趋势</h2>
+                <div id="trendChart" class="w-full h-[350px]"></div>
+            </section>
+        </div>
+
+        <section class="bg-surface rounded-xl border border-border p-6 shadow-sm">
+            <div class="flex justify-between items-start gap-6 mb-6">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <h2 class="text-lg font-bold text-gray-900">UV价值月环比波动归因</h2>
+                    </div>
+                    <p class="text-sm text-gray-500 leading-relaxed">只看“推荐加权 UV价值”的月环比变化，和顶部卡片完全同口径。先看总贡献谁在拉升或拖后腿，再拆开看，是模块业绩权重变了，还是模块自己的 UV价值变了。</p>
+                </div>
+                <div class="grid grid-cols-3 gap-3 min-w-[420px]">
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">综合变化</div>
+                        <div class="text-lg font-bold" :class="decompositionSummary.totalDelta > 0 ? 'text-emerald-600' : (decompositionSummary.totalDelta < 0 ? 'text-rose-600' : 'text-gray-900')">
+                            {{ decompositionSummary.totalLabel }}
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">推荐加权 UV价值</div>
+                    </div>
+                    <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+                        <div class="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-1">UV价值贡献</div>
+                        <div class="text-lg font-bold" :class="decompositionSummary.efficiencyEffect > 0 ? 'text-emerald-700' : (decompositionSummary.efficiencyEffect < 0 ? 'text-rose-600' : 'text-gray-900')">
+                            {{ decompositionSummary.efficiencyLabel }}
+                        </div>
+                        <div class="text-xs text-emerald-700/80 mt-1">模块自己的 UV价值变化带来的影响</div>
+                    </div>
+                    <div class="rounded-lg border border-sky-100 bg-sky-50 px-4 py-3">
+                        <div class="text-xs font-semibold text-sky-700 uppercase tracking-wide mb-1">权重贡献</div>
+                        <div class="text-lg font-bold" :class="decompositionSummary.weightEffect > 0 ? 'text-emerald-700' : (decompositionSummary.weightEffect < 0 ? 'text-rose-600' : 'text-gray-900')">
+                            {{ decompositionSummary.weightLabel }}
+                        </div>
+                        <div class="text-xs text-sky-700/80 mt-1">业绩权重变化带来的影响</div>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+                <div class="text-sm font-semibold text-amber-900 mb-2">这块是怎么算的</div>
+                <div class="grid grid-cols-[120px_1fr] gap-x-4 gap-y-2 text-sm text-amber-900/90 leading-relaxed">
+                    <div class="font-medium">先看权重变化</div>
+                    <div>这里的“权重”不是曝光占比，而是这个模块的引导成交业绩，占所有推荐模块总业绩的比例。比如一个模块从 12% 变成 17%，说明它在推荐盘里的份额变重了。</div>
+                    <div class="font-medium">再看 UV价值变化</div>
+                    <div>如果这个模块自己的 UV价值从 1.11 变成 1.39，说明同样 1 个用户进来，带来的产出更高了。这个变化本身会推高或拉低顶部卡片，这部分叫“UV价值贡献”。</div>
+                    <div class="font-medium">最后看总贡献</div>
+                    <div>总贡献 = 权重贡献 + UV价值贡献。所有模块的总贡献加起来，会严格等于顶部“推荐加权 UV价值”的月度差值。</div>
+                    <div class="font-medium">为什么单位不同</div>
+                    <div>“+5.00pp”说的是这个模块在推荐盘里的业绩权重多了多少；“+0.0586”说的是这次权重变化最后给顶部加权 UV价值多带来了多少影响。前者是变化本身，后者是变化造成的结果。</div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-base text-gray-500">
+                        <tr>
+                            <th class="px-4 py-3 font-semibold rounded-tl-md whitespace-nowrap">模块名称</th>
+                            <th class="px-4 py-3 font-semibold whitespace-nowrap">权重变化</th>
+                            <th class="px-4 py-3 font-semibold whitespace-nowrap">UV价值变化</th>
+                            <th class="px-4 py-3 font-semibold min-w-[420px]">综合贡献拆解</th>
+                            <th class="px-4 py-3 font-semibold rounded-tr-md whitespace-nowrap">归因判断</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border">
+                        <tr v-for="row in decomposedAttributions" :key="row.name" class="hover:bg-gray-50/50 align-top">
+                            <td class="px-4 py-4">
+                                <div class="font-medium text-gray-900">{{ row.name }}</div>
+                                <div class="text-xs text-gray-500 mt-1">引导成交业绩 {{ row.currGmvLabel }}</div>
+                            </td>
+                            <td class="px-4 py-4">
+                                <div class="font-medium text-gray-900">{{ row.prevWeightLabel }} → {{ row.currWeightLabel }}</div>
+                                <div class="text-xs mt-1" :class="row.weightDelta > 0 ? 'text-emerald-600' : (row.weightDelta < 0 ? 'text-rose-600' : 'text-gray-500')">
+                                    {{ row.weightDeltaLabel }}
+                                </div>
+                            </td>
+                            <td class="px-4 py-4">
+                                <div class="font-medium text-gray-900">{{ row.prevMetricLabel }} → {{ row.currMetricLabel }}</div>
+                                <div class="text-xs mt-1" :class="row.metricDelta > 0 ? 'text-emerald-600' : (row.metricDelta < 0 ? 'text-rose-600' : 'text-gray-500')">
+                                    {{ row.metricDeltaLabel }}
+                                </div>
+                            </td>
+                            <td class="px-4 py-4">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-24 text-right font-semibold" :class="row.totalEffect > 0 ? 'text-rose-600' : (row.totalEffect < 0 ? 'text-emerald-600' : 'text-gray-500')">
+                                        {{ row.totalEffectLabel }}
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="attr-track h-3">
+                                            <div v-if="row.totalEffect < 0" class="absolute right-1/2 top-0 h-full bg-emerald-500" :style="{ width: row.totalBarWidth + '%' }"></div>
+                                            <div v-else-if="row.totalEffect > 0" class="absolute left-1/2 top-0 h-full bg-rose-500" :style="{ width: row.totalBarWidth + '%' }"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-[48px_1fr] gap-x-3 gap-y-2 text-xs">
+                                    <div class="text-gray-500 leading-5">权重</div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-20 text-right font-medium" :class="row.weightEffect > 0 ? 'text-rose-600' : (row.weightEffect < 0 ? 'text-emerald-600' : 'text-gray-400')">
+                                            {{ row.weightEffectLabel }}
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="attr-track h-2">
+                                                <div v-if="row.weightEffect < 0" class="absolute right-1/2 top-0 h-full bg-emerald-400" :style="{ width: row.weightBarWidth + '%' }"></div>
+                                                <div v-else-if="row.weightEffect > 0" class="absolute left-1/2 top-0 h-full bg-rose-400" :style="{ width: row.weightBarWidth + '%' }"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-gray-500 leading-5">UV价值</div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-20 text-right font-medium" :class="row.efficiencyEffect > 0 ? 'text-rose-600' : (row.efficiencyEffect < 0 ? 'text-emerald-600' : 'text-gray-400')">
+                                            {{ row.efficiencyEffectLabel }}
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="attr-track h-2">
+                                                <div v-if="row.efficiencyEffect < 0" class="absolute right-1/2 top-0 h-full bg-emerald-300" :style="{ width: row.efficiencyBarWidth + '%' }"></div>
+                                                <div v-else-if="row.efficiencyEffect > 0" class="absolute left-1/2 top-0 h-full bg-rose-300" :style="{ width: row.efficiencyBarWidth + '%' }"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-4">
+                                <span class="inline-flex px-2.5 py-1 rounded text-xs font-semibold" :class="row.judgementTone">
+                                    {{ row.judgement }}
+                                </span>
+                                <div class="text-xs text-gray-500 mt-2 leading-relaxed">{{ row.judgementDesc }}</div>
+                            </td>
+                        </tr>
+                        <tr v-if="decomposedAttributions.length === 0">
+                            <td colspan="5" class="px-4 py-8 text-center text-gray-500">本月无可拆解数据</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="bg-surface rounded-xl border border-border p-6 shadow-sm">
+            <div class="flex justify-between items-start gap-6 mb-6">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900 mb-2">算法研发优先级矩阵</h2>
+                    <p class="text-sm text-gray-500 leading-relaxed">目标不是看分布，而是在研发资源有限时快速锁定最该先做的模块。X 轴看模块在推荐盘里的业绩权重，Y 轴看模块 UV价值相对推荐加权 UV价值的高低；右下象限就是“影响大但效率低”的优先优化区。</p>
+                </div>
+                <div class="grid grid-cols-3 gap-3 min-w-[420px]">
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">权重分界</div>
+                        <div class="text-lg font-bold text-gray-900">{{ priorityMatrixSummary.medianWeightLabel }}</div>
+                        <div class="text-xs text-gray-500 mt-1">模块业绩权重中位数</div>
+                    </div>
+                    <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+                        <div class="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-1">优先优化</div>
+                        <div class="text-lg font-bold text-orange-700">{{ priorityMatrixSummary.optimizeCount }}</div>
+                        <div class="text-xs text-orange-700/80 mt-1">高权重且低于盘均 UV价值</div>
+                    </div>
+                    <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+                        <div class="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-1">放量验证</div>
+                        <div class="text-lg font-bold text-emerald-700">{{ priorityMatrixSummary.scaleCount }}</div>
+                        <div class="text-xs text-emerald-700/80 mt-1">低权重但高于盘均 UV价值</div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-6">
+                <div class="w-2/3 h-[520px]" id="priorityMatrixChart"></div>
+                <div class="w-1/3 flex flex-col gap-4 pr-2">
+                    <div class="rounded-lg border border-orange-100 bg-orange-50 p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-orange-800">优先优化</h3>
+                            <span class="text-xs text-orange-700">高权重 / 低UV价值</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div v-for="item in priorityMatrixSummary.optimizeList" :key="item.name" class="rounded-md bg-white/70 border border-orange-100 px-3 py-2">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="font-medium text-gray-900">{{ item.name }}</div>
+                                    <div class="text-xs font-semibold text-orange-700">{{ item.weightLabel }}</div>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">低于盘均 {{ item.gapLabel }}，影响分 {{ item.scoreLabel }}</div>
+                            </div>
+                            <div v-if="priorityMatrixSummary.optimizeList.length === 0" class="text-sm text-orange-700/80">本月没有明显的高权重低效模块。</div>
+                        </div>
+                    </div>
+                    <div class="rounded-lg border border-emerald-100 bg-emerald-50 p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-emerald-800">放量验证</h3>
+                            <span class="text-xs text-emerald-700">低权重 / 高UV价值</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div v-for="item in priorityMatrixSummary.scaleList" :key="item.name" class="rounded-md bg-white/70 border border-emerald-100 px-3 py-2">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="font-medium text-gray-900">{{ item.name }}</div>
+                                    <div class="text-xs font-semibold text-emerald-700">{{ item.weightLabel }}</div>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">高于盘均 {{ item.gapLabel }}，可放量潜力 {{ item.scoreLabel }}</div>
+                            </div>
+                            <div v-if="priorityMatrixSummary.scaleList.length === 0" class="text-sm text-emerald-700/80">本月没有明显的低权重高效模块。</div>
+                        </div>
+                    </div>
+                    <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-slate-800">使用说明</h3>
+                            <span class="text-xs text-slate-600">如何读图</span>
+                        </div>
+                        <div class="space-y-2 text-sm text-slate-700 leading-relaxed">
+                            <p>右下：优先优化，先花研发资源。</p>
+                            <p>左上：放量验证，适合试探加资源。</p>
+                            <p>右上：核心守盘，先保稳定。</p>
+                            <p>左下：观察收缩，暂不优先投入。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module Performance Overview -->
+        <section class="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
+            <div class="px-6 py-5 border-b border-border flex justify-between items-center bg-gray-50/50">
+                <h2 class="text-lg font-bold text-gray-900">模块表现总览</h2>
+                <div class="flex items-center gap-4 text-sm">
+                    <span class="text-gray-500">点击行展开单模块趋势诊断</span>
+                    <button class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition-colors font-medium">
+                        <i data-lucide="download" class="w-4 h-4"></i> 导出数据
+                    </button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-base text-gray-500">
+                        <tr>
+                            <th class="px-6 py-4 font-semibold whitespace-nowrap">模块名称</th>
+                            <th @click="sortTable('曝光UV(udid)')" class="px-6 py-4 font-semibold cursor-pointer hover:text-gray-800 whitespace-nowrap">
+                                曝光UV <i data-lucide="arrow-down-up" class="w-3 h-3 inline"></i>
+                            </th>
+                            <th @click="sortTable('支付转化率')" class="px-6 py-4 font-semibold cursor-pointer hover:text-gray-800 whitespace-nowrap">
+                                支付转化率 <i data-lucide="arrow-down-up" class="w-3 h-3 inline"></i>
+                            </th>
+                            <th @click="sortTable('UV(udid)价值')" class="px-6 py-4 font-semibold cursor-pointer hover:text-gray-800 whitespace-nowrap">
+                                UV价值 <i data-lucide="arrow-down-up" class="w-3 h-3 inline"></i>
+                            </th>
+                            <th @click="sortTable('引导成交业绩')" class="px-6 py-4 font-semibold cursor-pointer hover:text-gray-800 whitespace-nowrap">
+                                引导成交业绩 <i data-lucide="arrow-down-up" class="w-3 h-3 inline"></i>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border">
+                        <template v-for="row in sortedTableData" :key="row['模块']">
+                            <tr @click="row['模块'] !== '全站' && toggleDetail(row['模块'])" :class="['group transition-colors', row['模块'] === '全站' ? 'bg-gray-50 font-semibold' : 'hover:bg-primary/5 cursor-pointer', activeDetail === row['模块'] ? 'bg-primary/5' : '']">
+                                <td class="px-6 py-4 text-gray-900 flex items-center gap-2">
+                                    <i v-if="row['模块'] !== '全站'" :data-lucide="activeDetail === row['模块'] ? 'chevron-down' : 'chevron-right'" class="w-4 h-4 text-gray-400 group-hover:text-primary transition-transform"></i>
+                                    {{ row['模块'] }}
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">{{ formatNum(row['曝光UV(udid)']) }}</td>
+                                <td class="px-6 py-4 text-gray-600">{{ formatPct(row['支付转化率']) }}</td>
+                                <td class="px-6 py-4 text-gray-600">¥{{ formatVal(row['UV(udid)价值']) }}</td>
+                                <td class="px-6 py-4 text-gray-900 font-medium">¥{{ formatNum(row['引导成交业绩']) }}</td>
+                            </tr>
+                            
+                            <!-- Single Module Diagnostic Expand -->
+                            <tr v-if="activeDetail === row['模块']">
+                                <td colspan="5" class="p-0 border-b border-border">
+                                    <div class="bg-gray-50/80 p-6 shadow-inner">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h3 class="font-bold text-gray-800">{{ row['模块'] }} - 近12个月表现诊断</h3>
+                                            <div class="flex gap-2">
+                                                <button v-for="metric in ['曝光/UV价值', '支付转化率', '引导成交业绩']" 
+                                                        :key="metric"
+                                                        @click="detailMetric = metric"
+                                                        :class="['px-3 py-1.5 text-xs font-semibold rounded transition-colors', detailMetric === metric ? 'bg-primary text-white shadow-sm' : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-100']">
+                                                    {{ metric }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div :id="'detailChart-' + row['模块']" class="w-full h-[280px]"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+
+const sourceData = window.dashboardSourceData?.rows || [];
+
+// Helpers
+const formatNum = (v) => v >= 10000 ? (v/10000).toFixed(1) + 'W' : (v||0).toLocaleString();
+const formatPct = (v) => ((v||0) * 100).toFixed(2) + '%';
+const formatVal = (v) => (v||0).toFixed(2);
+const formatMonth = (str) => `${str.substring(0,4)}年${str.substring(4)}月`;
+const formatShareDelta = (v) => `${v > 0 ? '+' : ''}${(v * 100).toFixed(2)}pp`;
+const formatEffectVal = (v, isPct = false) => isPct ? `${v > 0 ? '+' : ''}${(v * 100).toFixed(2)}pp` : `${v > 0 ? '+' : ''}${v.toFixed(4)}`;
+const formatMetricDelta = (v, isPct = false) => isPct ? `${v > 0 ? '+' : ''}${(v * 100).toFixed(2)}pp` : `${v > 0 ? '+' : ''}${v.toFixed(2)}`;
+const formatSignedPct = (v, digits = 1) => `${v > 0 ? '+' : ''}${(v * 100).toFixed(digits)}%`;
+
+// Color tokens
+const cRed = '#e11d48';
+const cBlue = '#2563eb';
+const cGreen = '#10b981';
+const cGray = '#9ca3af';
+
+const app = createApp({
+    setup() {
+        // Prepare global state
+        const allMonths = [...new Set(sourceData.map(d => d['月份']))].sort();
+        const currentMonth = ref(allMonths[allMonths.length - 1] || '202602');
+        
+        // Active UI States
+        const activeCard = ref(2); // Default open UV value
+        const sortKey = ref('引导成交业绩');
+        const sortDesc = ref(true);
+        const activeDetail = ref(null);
+        const detailMetric = ref('曝光/UV价值');
+        
+        let trendChartInst = null;
+        let priorityMatrixChartInst = null;
+        let detailChartInst = null;
+
+        const getMonthData = (m) => sourceData.filter(d => d['月份'] === m);
+        const getPrevMonth = (m) => {
+            const idx = allMonths.indexOf(m);
+            return idx > 0 ? allMonths[idx - 1] : null;
+        };
+
+        const calcWeighted = (m) => {
+            const data = getMonthData(m);
+            const rec = data.filter(d => !['全站', '搜索结果', '推荐加权'].includes(d['模块']));
+            const sumGmv = rec.reduce((s, r) => s + (r['引导成交业绩']||0), 0);
+            let wUV = 0, wCVR = 0;
+            const map = {};
+            rec.forEach(r => {
+                const w = sumGmv ? (r['引导成交业绩']||0) / sumGmv : 0;
+                wUV += w * (r['UV(udid)价值']||0);
+                wCVR += w * (r['支付转化率']||0);
+                map[r['模块']] = { uvVal: r['UV(udid)价值']||0, cvr: r['支付转化率']||0, gmv: r['引导成交业绩']||0, uv: r['曝光UV(udid)']||0, w };
+            });
+            const site = data.find(d => d['模块'] === '全站');
+            return { wUV, wCVR, siteUV: site ? site['UV(udid)价值'] : 0, count: rec.length, map };
+        };
+
+        // Metrics Computed
+        const metrics = computed(() => {
+            const curr = calcWeighted(currentMonth.value);
+            const prevM = getPrevMonth(currentMonth.value);
+            const prev = prevM ? calcWeighted(prevM) : null;
+
+            const makeObj = (val, prevVal, isPct = false, isInt = false) => {
+                const valF = isPct ? formatPct(val) : (isInt ? val : val.toFixed(2));
+                let momStr = '无上月数据', icon = 'minus', colorClass = 'text-gray-400';
+                if (prev) {
+                    const mom = prevVal ? (val - prevVal) / prevVal : 0;
+                    momStr = `环比 ${(mom > 0 ? '+' : '')}${formatPct(mom)}`;
+                    icon = mom > 0 ? 'trending-up' : (mom < 0 ? 'trending-down' : 'minus');
+                    colorClass = mom > 0 ? 'text-danger' : (mom < 0 ? 'text-success' : 'text-gray-400');
+                }
+                return { val: valF, momStr, icon, colorClass };
+            };
+
+            return {
+                modCount: makeObj(curr.count, prev?.count, false, true),
+                wUV: makeObj(curr.wUV, prev?.wUV),
+                wCVR: makeObj(curr.wCVR, prev?.wCVR, true),
+                siteUV: makeObj(curr.siteUV, prev?.siteUV)
+            };
+        });
+
+        // Smart Analysis Inference
+        const aiAnalysis = computed(() => {
+             const curr = calcWeighted(currentMonth.value);
+             const prevM = getPrevMonth(currentMonth.value);
+             if (!prevM) {
+                 return {
+                     overview: "当前月份缺少上月数据，暂时无法生成月环比摘要。",
+                     drivers: ["请先补齐上月数据后再看波动归因。"],
+                     actions: ["优先检查原始数据是否完整。"] 
+                 };
+             }
+
+             const prev = calcWeighted(prevM);
+             const delta = curr.wUV - prev.wUV;
+             const mom = prev.wUV ? delta / prev.wUV : 0;
+             const trendWord = delta > 0 ? '提升' : (delta < 0 ? '下降' : '持平');
+             const pressureWord = delta > 0 ? '整体改善' : (delta < 0 ? '整体承压' : '整体平稳');
+
+             const attributions = decomposedAttributions.value;
+             const topNegative = attributions.find(item => item.totalEffect < 0);
+             const topPositive = attributions.find(item => item.totalEffect > 0);
+             const optimizeList = priorityMatrixSummary.value.optimizeList.map(item => item.name);
+             const scaleList = priorityMatrixSummary.value.scaleList.map(item => item.name);
+
+             const drivers = [];
+             if (topNegative) {
+                 drivers.push(`${topNegative.name} 是本月最大拖累项，总贡献 ${topNegative.totalEffectLabel}；其中权重贡献 ${topNegative.weightEffectLabel}，UV价值贡献 ${topNegative.efficiencyEffectLabel}。`);
+             }
+             if (topPositive) {
+                 drivers.push(`${topPositive.name} 提供了最大正向对冲，总贡献 ${topPositive.totalEffectLabel}。`);
+             }
+             if (!drivers.length) {
+                 drivers.push("本月各模块波动较小，暂未出现明显的拖累项或对冲项。");
+             }
+
+             const actions = [];
+             if (optimizeList.length) {
+                 actions.push(`优先投入算法研发资源到 ${optimizeList.join('、')}，先稳住高权重模块的 UV价值。`);
+             } else {
+                 actions.push("本月没有明显的高权重低效模块，可继续观察下月变化。");
+             }
+             if (scaleList.length) {
+                 actions.push(`对 ${scaleList.join('、')} 做小流量放量验证，确认高 UV价值 是否能继续放大。`);
+             } else {
+                 actions.push("暂时没有明显的低权重高 UV价值 模块需要额外放量。");
+             }
+
+             return {
+                 overview: `推荐加权 UV价值从 ¥${prev.wUV.toFixed(2)} ${trendWord}到 ¥${curr.wUV.toFixed(2)}，环比 ${mom > 0 ? '+' : ''}${formatPct(mom)}，${pressureWord}。`,
+                 drivers,
+                 actions
+             };
+        });
+
+        const activeCardTitle = computed(() => {
+            const m = {1: '推荐模块数', 2: '推荐加权 UV 价值', 3: '推荐加权支付转化率', 4: '全站 UV 价值'};
+            return m[activeCard.value] || '';
+        });
+
+        const toggleCard = (cardId) => {
+            if (activeCard.value === cardId) activeCard.value = null; // collapse
+            else activeCard.value = cardId;
+        };
+
+        const decomposedAttributionModel = computed(() => {
+            const currM = currentMonth.value;
+            const prevM = getPrevMonth(currM);
+            const metricKey = 'UV(udid)价值';
+            const emptyResult = {
+                metricTitle: '推荐加权 UV价值',
+                totalDelta: 0,
+                efficiencyEffect: 0,
+                weightEffect: 0,
+                totalLabel: formatEffectVal(0, false),
+                efficiencyLabel: formatEffectVal(0, false),
+                weightLabel: formatEffectVal(0, false),
+                rows: []
+            };
+
+            if (!prevM) return emptyResult;
+
+            const currRows = getMonthData(currM).filter(d => !['全站', '搜索结果', '推荐加权'].includes(d['模块']));
+            const prevRows = getMonthData(prevM).filter(d => !['全站', '搜索结果', '推荐加权'].includes(d['模块']));
+            const currMap = Object.fromEntries(currRows.map(r => [r['模块'], r]));
+            const prevMap = Object.fromEntries(prevRows.map(r => [r['模块'], r]));
+            const totalCurrGmv = currRows.reduce((sum, row) => sum + (row['引导成交业绩'] || 0), 0);
+            const totalPrevGmv = prevRows.reduce((sum, row) => sum + (row['引导成交业绩'] || 0), 0);
+            const modules = [...new Set([...currRows.map(r => r['模块']), ...prevRows.map(r => r['模块'])])];
+
+            let totalDelta = 0;
+            let efficiencyEffect = 0;
+            let weightEffect = 0;
+
+            const rows = modules.map(name => {
+                const currRow = currMap[name] || {};
+                const prevRow = prevMap[name] || {};
+                const currGmv = currRow['引导成交业绩'] || 0;
+                const prevGmv = prevRow['引导成交业绩'] || 0;
+                const currWeight = totalCurrGmv ? currGmv / totalCurrGmv : 0;
+                const prevWeight = totalPrevGmv ? prevGmv / totalPrevGmv : 0;
+                const currMetric = currRow[metricKey] || 0;
+                const prevMetric = prevRow[metricKey] || 0;
+                const metricDelta = currMetric - prevMetric;
+                const weightDelta = currWeight - prevWeight;
+                const rowEfficiencyEffect = ((currWeight + prevWeight) / 2) * metricDelta;
+                const rowWeightEffect = ((currMetric + prevMetric) / 2) * weightDelta;
+                const rowTotalEffect = rowEfficiencyEffect + rowWeightEffect;
+
+                totalDelta += rowTotalEffect;
+                efficiencyEffect += rowEfficiencyEffect;
+                weightEffect += rowWeightEffect;
+
+                let judgement = '相互对冲';
+                let judgementTone = 'bg-gray-100 text-gray-700';
+                let judgementDesc = '权重变化和 UV价值变化方向相反，所以一部分影响被抵消了。';
+
+                if (rowTotalEffect >= 0 && rowEfficiencyEffect >= 0 && rowWeightEffect >= 0) {
+                    judgement = '双轮拉升';
+                    judgementTone = 'bg-emerald-100 text-emerald-700';
+                    judgementDesc = '业绩权重和模块 UV价值都在变好，所以它在拉升顶部卡片。';
+                } else if (rowTotalEffect < 0 && rowEfficiencyEffect < 0 && rowWeightEffect < 0) {
+                    judgement = '双重拖累';
+                    judgementTone = 'bg-rose-100 text-rose-700';
+                    judgementDesc = '业绩权重和模块 UV价值同时走弱，是典型拖后腿模块。';
+                } else if (Math.abs(rowEfficiencyEffect) >= Math.abs(rowWeightEffect)) {
+                    judgement = rowEfficiencyEffect >= 0 ? 'UV价值主导' : 'UV价值拖累';
+                    judgementTone = rowEfficiencyEffect >= 0 ? 'bg-violet-100 text-violet-700' : 'bg-violet-100 text-violet-700';
+                    judgementDesc = rowEfficiencyEffect >= 0 ? '主要是模块自己的 UV价值变好了，权重变化只是辅助。' : '主要是模块自己的 UV价值变差了，权重变化不是主因。';
+                } else {
+                    judgement = rowWeightEffect >= 0 ? '权重主导' : '权重拖累';
+                    judgementTone = rowWeightEffect >= 0 ? 'bg-sky-100 text-sky-700' : 'bg-sky-100 text-sky-700';
+                    judgementDesc = rowWeightEffect >= 0 ? '主要是这个模块在推荐盘里占到的业绩份额变大了，UV价值变化不是主因。' : '主要是这个模块在推荐盘里的业绩份额变小了。';
+                }
+
+                return {
+                    name,
+                    currGmvLabel: `¥${formatNum(currGmv)}`,
+                    prevWeightLabel: formatPct(prevWeight),
+                    currWeightLabel: formatPct(currWeight),
+                    weightDelta,
+                    weightDeltaLabel: formatShareDelta(weightDelta),
+                    prevMetricLabel: `¥${formatVal(prevMetric)}`,
+                    currMetricLabel: `¥${formatVal(currMetric)}`,
+                    metricDelta,
+                    metricDeltaLabel: formatMetricDelta(metricDelta, false),
+                    totalEffect: rowTotalEffect,
+                    totalEffectLabel: formatEffectVal(rowTotalEffect, false),
+                    weightEffect: rowWeightEffect,
+                    weightEffectLabel: formatEffectVal(rowWeightEffect, false),
+                    efficiencyEffect: rowEfficiencyEffect,
+                    efficiencyEffectLabel: formatEffectVal(rowEfficiencyEffect, false),
+                    judgement,
+                    judgementTone,
+                    judgementDesc
+                };
+            });
+
+            const maxAbsEffect = rows.length ? Math.max(...rows.flatMap(row => [
+                Math.abs(row.totalEffect),
+                Math.abs(row.weightEffect),
+                Math.abs(row.efficiencyEffect)
+            ])) : 1;
+            const safeMaxAbsEffect = maxAbsEffect || 1;
+
+            rows.forEach(row => {
+                row.totalBarWidth = (Math.abs(row.totalEffect) / safeMaxAbsEffect) * 100;
+                row.weightBarWidth = (Math.abs(row.weightEffect) / safeMaxAbsEffect) * 100;
+                row.efficiencyBarWidth = (Math.abs(row.efficiencyEffect) / safeMaxAbsEffect) * 100;
+            });
+
+            rows.sort((a, b) => Math.abs(b.totalEffect) - Math.abs(a.totalEffect));
+
+            return {
+                metricTitle: '推荐加权 UV价值',
+                totalDelta,
+                efficiencyEffect,
+                weightEffect,
+                totalLabel: formatEffectVal(totalDelta, false),
+                efficiencyLabel: formatEffectVal(efficiencyEffect, false),
+                weightLabel: formatEffectVal(weightEffect, false),
+                rows
+            };
+        });
+
+        const decomposedAttributions = computed(() => decomposedAttributionModel.value.rows);
+        const decompositionSummary = computed(() => decomposedAttributionModel.value);
+        const headlineModules = computed(() => {
+            const rows = decomposedAttributions.value;
+            return {
+                drag: rows.find(row => row.totalEffect < 0) || null,
+                lift: rows.find(row => row.totalEffect > 0) || null
+            };
+        });
+
+        const priorityMatrixModel = computed(() => {
+            const currRows = getMonthData(currentMonth.value).filter(r => !['全站', '搜索结果', '推荐加权'].includes(r['模块']));
+            if (!currRows.length) {
+                return {
+                    benchmark: 0,
+                    medianWeight: 0,
+                    points: [],
+                    optimizeList: [],
+                    scaleList: [],
+                    optimizeCount: 0,
+                    scaleCount: 0,
+                    medianWeightLabel: '0.00%'
+                };
+            }
+
+            const benchmark = calcWeighted(currentMonth.value).wUV;
+            const totalGmv = currRows.reduce((sum, row) => sum + (row['引导成交业绩'] || 0), 0);
+            const weights = currRows.map(row => totalGmv ? (row['引导成交业绩'] || 0) / totalGmv : 0).sort((a, b) => a - b);
+            const medianWeight = weights[Math.floor(weights.length / 2)] || 0;
+            const maxGmv = Math.max(...currRows.map(row => row['引导成交业绩'] || 0), 1);
+
+            const points = currRows.map(row => {
+                const gmv = row['引导成交业绩'] || 0;
+                const weight = totalGmv ? gmv / totalGmv : 0;
+                const uvValue = row['UV(udid)价值'] || 0;
+                const relativeGap = benchmark ? (uvValue / benchmark) - 1 : 0;
+                const symbolSize = 18 + 42 * Math.sqrt(gmv / maxGmv);
+
+                let actionKey = 'observe';
+                let actionLabel = '观察收缩';
+                let actionColor = '#94a3b8';
+                let score = 0;
+
+                if (weight >= medianWeight && relativeGap < 0) {
+                    actionKey = 'optimize';
+                    actionLabel = '优先优化';
+                    actionColor = '#f97316';
+                    score = weight * Math.abs(relativeGap);
+                } else if (weight < medianWeight && relativeGap >= 0) {
+                    actionKey = 'scale';
+                    actionLabel = '放量验证';
+                    actionColor = '#10b981';
+                    score = (medianWeight - weight + 0.0001) * Math.abs(relativeGap);
+                } else if (weight >= medianWeight && relativeGap >= 0) {
+                    actionKey = 'core';
+                    actionLabel = '核心守盘';
+                    actionColor = '#2563eb';
+                    score = weight * (1 + relativeGap);
+                } else {
+                    score = weight * Math.abs(relativeGap);
+                }
+
+                return {
+                    name: row['模块'],
+                    weight,
+                    weightLabel: formatPct(weight),
+                    uvValue,
+                    relativeGap,
+                    gapLabel: formatSignedPct(relativeGap, 1),
+                    gmv,
+                    gmvLabel: `¥${formatNum(gmv)}`,
+                    score,
+                    scoreLabel: score.toFixed(3),
+                    actionKey,
+                    actionLabel,
+                    actionColor,
+                    symbolSize
+                };
+            });
+
+            const optimizeList = points
+                .filter(point => point.actionKey === 'optimize')
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 3);
+
+            const scaleList = points
+                .filter(point => point.actionKey === 'scale')
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 3);
+
+            return {
+                benchmark,
+                medianWeight,
+                medianWeightLabel: formatPct(medianWeight),
+                optimizeCount: points.filter(point => point.actionKey === 'optimize').length,
+                scaleCount: points.filter(point => point.actionKey === 'scale').length,
+                points,
+                optimizeList,
+                scaleList
+            };
+        });
+
+        const priorityMatrixSummary = computed(() => priorityMatrixModel.value);
+
+        // Table Data & Sorting
+        const tableData = computed(() => {
+            return getMonthData(currentMonth.value).filter(r => r['模块'] !== '搜索结果' && r['模块'] !== '推荐加权');
+        });
+
+        const sortedTableData = computed(() => {
+            let arr = [...tableData.value];
+            // keep 全站 at bottom
+            const siteIdx = arr.findIndex(r => r['模块'] === '全站');
+            let siteRow = null;
+            if (siteIdx > -1) {
+                siteRow = arr.splice(siteIdx, 1)[0];
+            }
+            arr.sort((a,b) => {
+                const av = a[sortKey.value] || 0;
+                const bv = b[sortKey.value] || 0;
+                return sortDesc.value ? bv - av : av - bv;
+            });
+            if (siteRow) arr.push(siteRow);
+            return arr;
+        });
+
+        const sortTable = (key) => {
+            if (sortKey.value === key) sortDesc.value = !sortDesc.value;
+            else { sortKey.value = key; sortDesc.value = true; }
+        };
+
+        const toggleDetail = (modName) => {
+            if (activeDetail.value === modName) activeDetail.value = null;
+            else {
+                activeDetail.value = modName;
+                nextTick(() => renderDetailChart(modName));
+            }
+        };
+
+        // ECharts rendering
+        const renderTrendChart = () => {
+            if (!activeCard.value) return;
+            const el = document.getElementById('trendChart');
+            if (!el) return;
+            if (trendChartInst) trendChartInst.dispose();
+            trendChartInst = echarts.init(el);
+
+            const xData = allMonths.map(formatMonth);
+            const sName = activeCardTitle.value;
+            const isCVR = activeCard.value === 3;
+            const sData = allMonths.map(m => {
+                const c = calcWeighted(m);
+                if (activeCard.value === 1) return c.count;
+                if (activeCard.value === 2) return c.wUV;
+                if (activeCard.value === 3) return c.wCVR;
+                if (activeCard.value === 4) return c.siteUV;
+            });
+
+            // Reference line logic
+            const series = [{
+                name: '主体指标',
+                type: 'line',
+                data: sData,
+                smooth: true,
+                symbol: 'circle',
+                symbolSize: 8,
+                itemStyle: { color: cRed },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        {offset: 0, color: 'rgba(225, 29, 72, 0.2)'},
+                        {offset: 1, color: 'rgba(225, 29, 72, 0)'}
+                    ])
+                }
+            }];
+
+            let yAxis = [{ 
+                type: 'value', 
+                scale: true,
+                axisLabel: { color: '#6b7280', formatter: (val) => isCVR ? (val*100).toFixed(0)+'%' : val }, 
+                splitLine: { lineStyle: {type: 'dashed', color: '#f3f4f6' } } 
+            }];
+
+            if (activeCard.value === 2 || activeCard.value === 3) {
+                // Add site reference
+                const siteData = allMonths.map(m => {
+                    const data = getMonthData(m);
+                    const site = data.find(d => d['模块'] === '全站');
+                    if (!site) return 0;
+                    return activeCard.value === 2 ? site['UV(udid)价值'] : site['支付转化率'];
+                });
+                series.push({
+                    name: '全站参照',
+                    type: 'line',
+                    yAxisIndex: 1,
+                    data: siteData,
+                    smooth: true,
+                    lineStyle: { type: 'dashed', color: cGray },
+                    itemStyle: { color: cGray }
+                });
+                yAxis.push({
+                    type: 'value',
+                    scale: true,
+                    axisLabel: { color: '#9ca3af', formatter: (val) => isCVR ? (val*100).toFixed(0)+'%' : val },
+                    splitLine: { show: false }
+                });
+            }
+
+            const option = {
+                tooltip: { trigger: 'axis', valueFormatter: (val) => isCVR ? (val*100).toFixed(2)+'%' : parseFloat(val).toFixed(2) },
+                legend: { show: false }, 
+                grid: { top: 30, right: 50, bottom: 30, left: 50 },
+                xAxis: { type: 'category', data: xData, axisLine: { lineStyle: { color: '#e5e7eb' } }, axisLabel: { color: '#6b7280' } },
+                yAxis: yAxis,
+                series
+            };
+            trendChartInst.setOption(option);
+        };
+
+        const renderPriorityMatrixChart = () => {
+             const el = document.getElementById('priorityMatrixChart');
+             if (!el) return;
+             if (priorityMatrixChartInst) priorityMatrixChartInst.dispose();
+             priorityMatrixChartInst = echarts.init(el);
+
+             const model = priorityMatrixModel.value;
+             const points = model.points;
+
+             const scatterData = points.map(point => ({
+                 name: point.name,
+                 value: [point.weight, point.relativeGap, point.gmv],
+                 symbolSize: point.symbolSize,
+                 itemStyle: { color: point.actionColor, opacity: 0.78 }
+             }));
+
+             const option = {
+                 tooltip: {
+                     formatter: (p) => {
+                         const point = points.find(item => item.name === p.data.name);
+                         if (!point) return '';
+                         return `<div class="font-bold border-b pb-1 mb-1">${point.name}</div>
+                                 动作建议: ${point.actionLabel}<br/>
+                                 业绩权重: ${point.weightLabel}<br/>
+                                 UV价值: ¥${point.uvValue.toFixed(2)}<br/>
+                                 相对盘均: ${point.gapLabel}<br/>
+                                 引导成交业绩: ${point.gmvLabel}`;
+                     }
+                 },
+                 grid: { top: 50, right: 30, bottom: 60, left: 70 },
+                 xAxis: {
+                     type: 'value',
+                     name: '模块业绩权重 →',
+                     min: 0,
+                     axisLabel: { formatter: (v) => `${(v * 100).toFixed(0)}%` },
+                     splitLine: { lineStyle: { color: '#f1f5f9' } }
+                 },
+                 yAxis: {
+                     type: 'value',
+                     name: '相对推荐盘均值 UV价值 →',
+                     axisLabel: { formatter: (v) => formatSignedPct(v, 0) },
+                     splitLine: { lineStyle: { color: '#f1f5f9' } }
+                 },
+                 series: [{
+                     type: 'scatter',
+                     data: scatterData,
+                     label: {
+                         show: true,
+                         formatter: (p) => p.data.name,
+                         position: 'top',
+                         color: '#475569',
+                         fontSize: 11
+                     },
+                     markLine: {
+                         silent: true,
+                         lineStyle: { type: 'dashed', color: '#94a3b8' },
+                         label: { show: false },
+                         data: [
+                             { xAxis: model.medianWeight },
+                             { yAxis: 0 }
+                         ]
+                     }
+                 }],
+                 graphic: [
+                     { type: 'text', right: 56, top: 12, style: { text: '核心守盘', fill: '#2563eb', font: '12px sans-serif' } },
+                     { type: 'text', left: 56, top: 12, style: { text: '放量验证', fill: '#10b981', font: '12px sans-serif' } },
+                     { type: 'text', right: 56, bottom: 28, style: { text: '优先优化', fill: '#f97316', font: '12px sans-serif' } },
+                     { type: 'text', left: 56, bottom: 28, style: { text: '观察收缩', fill: '#64748b', font: '12px sans-serif' } }
+                 ]
+             };
+
+             priorityMatrixChartInst.setOption(option);
+        };
+
+        const renderDetailChart = (modName) => {
+            const el = document.getElementById('detailChart-' + modName);
+            if (!el) return;
+            if (detailChartInst) detailChartInst.dispose();
+            detailChartInst = echarts.init(el);
+
+            const xData = allMonths.map(formatMonth);
+            const isPct = detailMetric.value === '支付转化率';
+            const isDual = detailMetric.value === '曝光/UV价值';
+
+            let yAxis = [];
+            let series = [];
+
+            if (isDual) {
+                const uvData = allMonths.map(m => {
+                    const d = getMonthData(m).find(r => r['模块'] === modName);
+                    return d ? d['曝光UV(udid)'] : 0;
+                });
+                const valData = allMonths.map(m => {
+                    const d = getMonthData(m).find(r => r['模块'] === modName);
+                    return d ? d['UV(udid)价值'] : 0;
+                });
+                yAxis = [
+                    { type: 'value', scale: true, axisLabel: { formatter: (v) => formatNum(v) }, splitLine: { lineStyle: {type:'dashed'}} },
+                    { type: 'value', scale: true, axisLabel: { formatter: (v) => formatVal(v) }, splitLine: { show: false } }
+                ];
+                series = [
+                    {
+                        name: '曝光UV', type: 'line', smooth: true, data: uvData,
+                        itemStyle: { color: cBlue },
+                        lineStyle: { color: cBlue, width: 2 },
+                        tooltip: { valueFormatter: (v) => formatNum(v) }
+                    },
+                    {
+                        name: 'UV价值', type: 'line', yAxisIndex: 1, smooth: true, data: valData,
+                        itemStyle: { color: cRed },
+                        lineStyle: { color: cRed, width: 3 },
+                        areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0, color:'rgba(225,29,72,0.16)'}, {offset:1, color:'rgba(225,29,72,0)'}]) },
+                        tooltip: { valueFormatter: (v) => '¥' + formatVal(v) }
+                    }
+                ];
+            } else {
+                const mData = allMonths.map(m => {
+                    const d = getMonthData(m).find(r => r['模块'] === modName);
+                    return d ? d[detailMetric.value] : 0;
+                });
+                yAxis = { type: 'value', scale: true, splitLine: { lineStyle: {type:'dashed'}}, axisLabel: { formatter: (v) => isPct ? (v*100).toFixed(0)+'%' : formatNum(v) } };
+                series = [{
+                    name: detailMetric.value, type: 'line', smooth: true, data: mData,
+                    itemStyle: { color: cRed },
+                    areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0, color:'rgba(225,29,72,0.2)'}, {offset:1, color:'rgba(225,29,72,0)'}]) },
+                    tooltip: { valueFormatter: (v) => isPct ? (v*100).toFixed(2)+'%' : (detailMetric.value.includes('业绩') ? '¥'+formatNum(v) : formatNum(v)) }
+                }];
+            }
+
+            const option = {
+                tooltip: { trigger: 'axis' },
+                legend: isDual ? { data: ['曝光UV', 'UV价值'], top: 0 } : { show: false },
+                grid: { top: isDual ? 30 : 20, right: isDual ? 50 : 20, bottom: 20, left: 60 },
+                xAxis: { type: 'category', data: xData },
+                yAxis: yAxis,
+                series: series
+            };
+            detailChartInst.setOption(option);
+        };
+
+        watch([activeCard, currentMonth], () => {
+            nextTick(() => { renderTrendChart(); });
+        });
+        
+        watch(currentMonth, () => {
+            nextTick(() => {
+                renderPriorityMatrixChart();
+                if(activeDetail.value) renderDetailChart(activeDetail.value);
+            });
+        });
+
+        watch(detailMetric, () => {
+            if(activeDetail.value) renderDetailChart(activeDetail.value);
+        });
+
+        onMounted(() => {
+            lucide.createIcons();
+            nextTick(() => {
+                renderTrendChart();
+                renderPriorityMatrixChart();
+            });
+            window.addEventListener('resize', () => {
+                trendChartInst?.resize();
+                priorityMatrixChartInst?.resize();
+                detailChartInst?.resize();
+            });
+        });
+
+        return {
+            allMonths,
+            currentMonth: currentMonth,
+            formatMonth,
+            metrics,
+            aiAnalysis,
+            headlineModules,
+            activeCard,
+            activeCardTitle,
+            toggleCard,
+            decomposedAttributions,
+            decompositionSummary,
+            priorityMatrixSummary,
+            tableData,
+            sortedTableData,
+            sortKey,
+            sortDesc,
+            sortTable,
+            activeDetail,
+            toggleDetail,
+            detailMetric,
+            formatNum,
+            formatPct,
+            formatVal
+        }
+    }
+});
+
+app.mount('#app');
+</script>
+</body>
+</html>
