@@ -8,16 +8,15 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="./data.js"></script>
-    <script src="./events.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#e33f32', // brighter accent red
-                        success: '#23794b', // muted green
-                        danger: '#e33f32',  // brighter accent red
-                        base: '#f4f5f7',
+                        primary: '#e11d48', // Red for emphasis
+                        success: '#10b981', // Green for decline
+                        danger: '#e11d48',  // Red for increase
+                        base: '#f9fafb',
                         surface: '#ffffff',
                         border: '#e5e7eb',
                     }
@@ -26,74 +25,9 @@
         }
     </script>
     <style>
-        :root {
-            --background: #f4f5f7;
-            --foreground: #1f2429;
-            --card: #ffffff;
-            --card-foreground: #1f2429;
-            --muted: #eef1f4;
-            --muted-foreground: #6b7280;
-            --border: #e5e7eb;
-            --border-strong: #d1d5db;
-            --primary: #e33f32;
-            --primary-soft: #fff2f0;
-            --primary-ink: #e33f32;
-            --success-ink: #23794b;
-            --surface-tint: rgba(255, 255, 255, 0.92);
-        }
-        body { background-color: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: var(--foreground); }
-        header {
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(16px);
-            border-color: var(--border);
-        }
-        main {
-            position: relative;
-        }
-        section.bg-surface {
-            position: relative;
-            background: #ffffff;
-            border-color: var(--border);
-            border-radius: 1.5rem;
-            overflow: hidden;
-            box-shadow: none;
-        }
-        section.bg-surface::before {
-            content: '';
-            position: absolute;
-            inset: 0 0 auto 0;
-            height: 1px;
-            background: linear-gradient(90deg, rgba(227,63,50,0.62), rgba(227,63,50,0.08) 26%, rgba(227,63,50,0) 50%);
-        }
+        body { background-color: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
         .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
         .card-shadow-hover:hover { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
-        .metric-card-clean {
-            position: relative;
-            overflow: hidden;
-            border: 1px solid var(--border);
-            border-radius: 1.5rem;
-            background: linear-gradient(180deg, var(--card), var(--muted));
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
-            transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
-        }
-        .metric-card-clean::before {
-            content: '';
-            position: absolute;
-            inset: 0 0 auto 0;
-            height: 4px;
-            background: var(--border-strong);
-        }
-        .metric-card-clean:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
-        }
-        .metric-card-clean.is-active {
-            border-color: var(--border-strong);
-            box-shadow: 0 14px 32px rgba(227, 63, 50, 0.08);
-        }
-        .metric-card-clean.is-active::before {
-            background: var(--primary);
-        }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
@@ -102,222 +36,6 @@
         .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 300ms; }
         .attr-track { position: relative; background: #f3f4f6; border-radius: 9999px; overflow: hidden; }
         .attr-track::after { content: ''; position: absolute; inset: 0 auto 0 50%; width: 1px; background: #d1d5db; transform: translateX(-0.5px); }
-        .dashboard-shell {
-            position: relative;
-        }
-        .dashboard-shell::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            background-image:
-                linear-gradient(rgba(148,163,184,0.045) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(148,163,184,0.045) 1px, transparent 1px);
-            background-size: 24px 24px;
-            mask-image: linear-gradient(180deg, rgba(0,0,0,0.3), transparent 75%);
-        }
-        .header-kicker {
-            letter-spacing: 0.32em;
-            text-transform: uppercase;
-            font-size: 0.68rem;
-            color: var(--muted-foreground);
-        }
-        .brand-mark {
-            width: 2.75rem;
-            height: 2.75rem;
-            border-radius: 0.95rem;
-            border: 1px solid rgba(227,63,50,0.24);
-            background: #ffffff;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.25rem;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
-        }
-        .header-panel {
-            min-width: 17rem;
-            border: 1px solid var(--border);
-            background: #ffffff;
-            border-radius: 1.25rem;
-        }
-        .hero-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
-            gap: 1rem;
-        }
-        .metric-hero-card,
-        .metric-side-card,
-        .summary-card {
-            border: 1px solid var(--border);
-            background: #ffffff;
-            border-radius: 1.5rem;
-        }
-        .metric-hero-card {
-            padding: 1.75rem;
-            min-height: 18rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .metric-side-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 1rem;
-        }
-        .metric-side-card {
-            padding: 1.25rem;
-            min-height: 8.4rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .metric-kicker {
-            font-size: 0.73rem;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--muted-foreground);
-        }
-        .metric-value-primary {
-            font-size: clamp(2.7rem, 5vw, 4.8rem);
-            line-height: 0.98;
-            letter-spacing: -0.05em;
-            color: var(--primary-ink);
-            font-weight: 700;
-        }
-        .metric-value-secondary {
-            font-size: 2rem;
-            line-height: 1;
-            letter-spacing: -0.04em;
-            font-weight: 700;
-            color: #20242a;
-        }
-        .metric-divider {
-            height: 1px;
-            background: linear-gradient(90deg, rgba(227,63,50,0.68), rgba(227,63,50,0.12) 22%, rgba(229,231,235,1) 52%, rgba(229,231,235,1) 100%);
-        }
-        .signal-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.35rem 0.7rem;
-            border-radius: 999px;
-            border: 1px solid var(--border);
-            background: rgba(255,255,255,0.9);
-            color: var(--muted-foreground);
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .signal-chip.is-positive {
-            color: var(--primary);
-            border-color: rgba(227,63,50,0.22);
-            background: #ffffff;
-        }
-        .signal-chip.is-negative {
-            color: var(--success-ink);
-            border-color: rgba(35,121,75,0.22);
-            background: rgba(228, 244, 234, 0.85);
-        }
-        .signal-chip.is-neutral {
-            color: var(--muted-foreground);
-        }
-        .metric-insight-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 0.75rem;
-        }
-        .metric-mini {
-            padding: 0.95rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 1.1rem;
-            background: #fbfcfd;
-        }
-        .metric-mini-label {
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.18em;
-            color: var(--muted-foreground);
-            margin-bottom: 0.45rem;
-        }
-        .summary-grid {
-            display: grid;
-            grid-template-columns: 1.15fr 1fr 1fr;
-            gap: 1rem;
-        }
-        .summary-card {
-            padding: 1.35rem;
-            min-height: 12.5rem;
-        }
-        .summary-card.is-highlight {
-            background: #ffffff;
-            border-color: rgba(227,63,50,0.32);
-            box-shadow: inset 0 0 0 1px rgba(227,63,50,0.08);
-        }
-        .summary-card-title {
-            font-size: 0.76rem;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--muted-foreground);
-            margin-bottom: 0.9rem;
-        }
-        .summary-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        .summary-list li {
-            position: relative;
-            padding-left: 1rem;
-            line-height: 1.65;
-            color: #40464d;
-        }
-        .summary-list li::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0.65rem;
-            width: 0.35rem;
-            height: 0.35rem;
-            border-radius: 999px;
-            background: rgba(227,63,50,0.78);
-        }
-        .summary-list.is-ordered {
-            counter-reset: summary-step;
-        }
-        .summary-list.is-ordered li {
-            padding-left: 1.75rem;
-        }
-        .summary-list.is-ordered li::before {
-            counter-increment: summary-step;
-            content: counter(summary-step);
-            width: 1.1rem;
-            height: 1.1rem;
-            top: 0.2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 999px;
-            background: var(--primary-soft);
-            color: var(--primary);
-            font-size: 0.7rem;
-            font-weight: 700;
-        }
-        @media (max-width: 1100px) {
-            .hero-grid,
-            .summary-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        @media (max-width: 768px) {
-            .metric-side-grid,
-            .metric-insight-grid {
-                grid-template-columns: 1fr;
-            }
-        }
     </style>
 </head>
 <body class="text-gray-800 antialiased">
@@ -327,20 +45,19 @@
     <header class="bg-surface border-b border-border sticky top-0 z-50">
         <div class="px-8 py-4 flex justify-between items-center max-w-[1600px] mx-auto">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-lg">优</div>
+                <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-lg">
+                    优
+                </div>
                 <h1 class="text-2xl font-bold text-gray-900 tracking-tight">优鲜推荐模块看盘V1.0</h1>
             </div>
-            <div class="flex flex-col items-end gap-2">
-                <div class="flex items-center gap-4">
-                    <span class="text-sm text-gray-500 font-medium">分析月份</span>
-                    <div class="relative">
-                        <select v-model="currentMonth" class="appearance-none bg-base border border-border rounded-md pl-4 pr-10 py-2 text-sm font-semibold text-gray-700 outline-none focus:border-primary cursor-pointer">
-                            <option v-for="m in allMonths" :key="m" :value="m">{{ formatMonth(m) }}</option>
-                        </select>
-                        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"></i>
-                    </div>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-gray-500 font-medium">分析月份</span>
+                <div class="relative">
+                    <select v-model="currentMonth" class="appearance-none bg-base border border-border rounded-md pl-4 pr-10 py-2 text-sm font-semibold text-gray-700 outline-none focus:border-primary cursor-pointer">
+                        <option v-for="m in allMonths" :key="m" :value="m">{{ formatMonth(m) }}</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"></i>
                 </div>
-                <div class="text-xs text-gray-500">已更新至 {{ summaryMonthLabel }} · 仅保留全站与推荐模块，剔除搜索结果与推荐加权</div>
             </div>
         </div>
     </header>
@@ -349,7 +66,8 @@
         
         <!-- Core Metric Cards -->
         <section class="grid grid-cols-4 gap-6">
-            <div class="metric-card-clean p-6">
+            <!-- Card 1: 推荐模块数 -->
+            <div class="relative overflow-hidden rounded-xl p-6 border transition-all border-blue-100 bg-gradient-to-br from-blue-50 to-white">
                 <div class="absolute -bottom-4 -right-4 text-blue-500 opacity-5 pointer-events-none">
                     <i data-lucide="layout-grid" style="width: 100px; height: 100px;"></i>
                 </div>
@@ -359,15 +77,17 @@
                 <div class="relative z-10 text-3xl font-bold text-blue-950 mb-2">{{ metrics.modCount.val }}</div>
             </div>
 
-            <div @click="toggleCard(2)" class="metric-card-clean p-6 cursor-pointer" :class="{ 'is-active': activeCard === 2 }">
+            <!-- Card 2: 推荐加权 UV 价值 -->
+            <div @click="toggleCard(2)" class="relative overflow-hidden rounded-xl p-6 border transition-all cursor-pointer card-shadow-hover" :class="activeCard === 2 ? 'border-rose-400 ring-2 ring-rose-200 bg-white' : 'border-rose-100 bg-gradient-to-br from-rose-50 to-white'">
                 <div class="absolute -bottom-4 -right-4 text-rose-500 opacity-5 pointer-events-none">
                     <i data-lucide="gem" style="width: 100px; height: 100px;"></i>
                 </div>
                 <div class="relative z-10 flex justify-between items-center mb-4">
-                    <span class="text-sm font-semibold text-primary flex items-center gap-1">推荐加权 UV 价值 <i data-lucide="info" class="w-4 h-4"></i></span>
+                    <span class="text-sm font-semibold text-rose-900/70 flex items-center gap-1">推荐加权 UV 价值 <i data-lucide="info" class="w-4 h-4"></i></span>
                 </div>
-                <div class="relative z-10 text-3xl font-bold text-gray-900 mb-2">¥{{ metrics.wUV.val }}</div>
+                <div class="relative z-10 text-3xl font-bold text-rose-950 mb-2">¥{{ metrics.wUV.val }}</div>
                 <div class="relative z-10 flex items-center gap-1 text-sm font-medium" :class="metrics.wUV.momStr.includes('+') ? 'text-rose-600' : (metrics.wUV.momStr.includes('-') ? 'text-emerald-600' : 'text-rose-800/60')">
+                    
                     <svg v-if="metrics.wUV.icon === 'trending-up'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
                     <svg v-else-if="metrics.wUV.icon === 'trending-down'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"></polyline><polyline points="16 17 22 17 22 11"></polyline></svg>
                     <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -375,7 +95,8 @@
                 </div>
             </div>
 
-            <div @click="toggleCard(3)" class="metric-card-clean p-6 cursor-pointer" :class="{ 'is-active': activeCard === 3 }">
+            <!-- Card 3: 推荐加权支付转化率 -->
+            <div @click="toggleCard(3)" class="relative overflow-hidden rounded-xl p-6 border transition-all cursor-pointer card-shadow-hover" :class="activeCard === 3 ? 'border-emerald-400 ring-2 ring-emerald-200 bg-white' : 'border-emerald-100 bg-gradient-to-br from-emerald-50 to-white'">
                 <div class="absolute -bottom-4 -right-4 text-emerald-500 opacity-5 pointer-events-none">
                     <i data-lucide="mouse-pointer-click" style="width: 100px; height: 100px;"></i>
                 </div>
@@ -384,6 +105,7 @@
                 </div>
                 <div class="relative z-10 text-3xl font-bold text-emerald-950 mb-2">{{ metrics.wCVR.val }}</div>
                 <div class="relative z-10 flex items-center gap-1 text-sm font-medium" :class="metrics.wCVR.momStr.includes('+') ? 'text-rose-600' : (metrics.wCVR.momStr.includes('-') ? 'text-emerald-600' : 'text-emerald-800/60')">
+                    
                     <svg v-if="metrics.wCVR.icon === 'trending-up'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
                     <svg v-else-if="metrics.wCVR.icon === 'trending-down'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"></polyline><polyline points="16 17 22 17 22 11"></polyline></svg>
                     <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -391,7 +113,8 @@
                 </div>
             </div>
 
-            <div @click="toggleCard(4)" class="metric-card-clean p-6 cursor-pointer" :class="{ 'is-active': activeCard === 4 }">
+            <!-- Card 4: 全站 UV 价值 -->
+            <div @click="toggleCard(4)" class="relative overflow-hidden rounded-xl p-6 border transition-all cursor-pointer card-shadow-hover" :class="activeCard === 4 ? 'border-violet-400 ring-2 ring-violet-200 bg-white' : 'border-violet-100 bg-gradient-to-br from-violet-50 to-white'">
                 <div class="absolute -bottom-4 -right-4 text-violet-500 opacity-5 pointer-events-none">
                     <i data-lucide="globe" style="width: 100px; height: 100px;"></i>
                 </div>
@@ -400,6 +123,7 @@
                 </div>
                 <div class="relative z-10 text-3xl font-bold text-violet-950 mb-2">¥{{ metrics.siteUV.val }}</div>
                 <div class="relative z-10 flex items-center gap-1 text-sm font-medium" :class="metrics.siteUV.momStr.includes('+') ? 'text-rose-600' : (metrics.siteUV.momStr.includes('-') ? 'text-emerald-600' : 'text-violet-800/60')">
+                    
                     <svg v-if="metrics.siteUV.icon === 'trending-up'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
                     <svg v-else-if="metrics.siteUV.icon === 'trending-down'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"></polyline><polyline points="16 17 22 17 22 11"></polyline></svg>
                     <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -412,22 +136,22 @@
         <section class="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col gap-4 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[100px] pointer-events-none"></div>
             <div class="flex items-center gap-2 mb-2">
-                <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                     <i data-lucide="sparkles" class="w-4 h-4"></i>
                 </div>
-                <h2 class="text-lg font-bold text-gray-900">本月经营摘要（{{ summaryMonthLabel }}）</h2>
+                <h2 class="text-lg font-bold text-gray-900">本月经营摘要</h2>
             </div>
             
             <div class="grid grid-cols-[100px_1fr] gap-4 items-start text-sm">
-                <div class="font-semibold text-white bg-primary px-3 py-1.5 rounded text-center">整体判断</div>
+                <div class="font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded text-center">整体判断</div>
                 <div class="text-gray-700 pt-1 leading-relaxed font-medium">{{ aiAnalysis.overview }}</div>
                 
-                <div class="font-semibold text-white bg-primary px-3 py-1.5 rounded text-center">主要变化</div>
+                <div class="font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded text-center">主要变化</div>
                 <ul class="text-gray-700 pt-1 leading-relaxed list-disc list-inside space-y-1">
                     <li v-for="(change, idx) in aiAnalysis.drivers" :key="idx">{{ change }}</li>
                 </ul>
                 
-                <div class="font-semibold text-white bg-primary px-3 py-1.5 rounded text-center">下一步动作</div>
+                <div class="font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded text-center">下一步动作</div>
                 <ul class="text-gray-700 pt-1 leading-relaxed list-decimal list-inside space-y-1">
                     <li v-for="(adv, idx) in aiAnalysis.actions" :key="idx">{{ adv }}</li>
                 </ul>
@@ -476,16 +200,16 @@
                 </div>
             </div>
             <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
-                <div class="text-sm font-semibold text-amber-900 mb-2">这张表怎么看</div>
+                <div class="text-sm font-semibold text-amber-900 mb-2">这块是怎么算的</div>
                 <div class="grid grid-cols-[120px_1fr] gap-x-4 gap-y-2 text-sm text-amber-900/90 leading-relaxed">
-                    <div class="font-medium">先看权重</div>
-                    <div>这里的“权重”看的是模块引导成交业绩占整个推荐盘总业绩的比例，不是曝光占比。权重越高，这个模块对顶部“推荐加权 UV价值”的影响就越大。</div>
-                    <div class="font-medium">再看两类变化</div>
-                    <div>一个模块会影响顶部指标，通常只有两种原因：一是模块自己的 UV价值变了，二是它在推荐盘里的业绩份额变了。表里把这两部分拆开看，分别叫“UV价值贡献”和“权重贡献”。</div>
+                    <div class="font-medium">先看权重变化</div>
+                    <div>这里的“权重”不是曝光占比，而是这个模块的引导成交业绩，占所有推荐模块总业绩的比例。比如一个模块从 12% 变成 17%，说明它在推荐盘里的份额变重了。</div>
+                    <div class="font-medium">再看 UV价值变化</div>
+                    <div>如果这个模块自己的 UV价值从 1.11 变成 1.39，说明同样 1 个用户进来，带来的产出更高了。这个变化本身会推高或拉低顶部卡片，这部分叫“UV价值贡献”。</div>
                     <div class="font-medium">最后看总贡献</div>
-                    <div>综合贡献 = 权重贡献 + UV价值贡献。把所有模块的综合贡献加总起来，就等于顶部“推荐加权 UV价值”相对上月的变化。</div>
-                    <div class="font-medium">单位怎么理解</div>
-                    <div>像“+5.00pp”表示这个模块在推荐盘里的业绩份额提升了 5 个点；像“+0.0586”表示这次变化最终把顶部加权 UV价值推高了多少。前者是份额变化，后者是对结果的影响。</div>
+                    <div>总贡献 = 权重贡献 + UV价值贡献。所有模块的总贡献加起来，会严格等于顶部“推荐加权 UV价值”的月度差值。</div>
+                    <div class="font-medium">为什么单位不同</div>
+                    <div>“+5.00pp”说的是这个模块在推荐盘里的业绩权重多了多少；“+0.0586”说的是这次权重变化最后给顶部加权 UV价值多带来了多少影响。前者是变化本身，后者是变化造成的结果。</div>
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -500,13 +224,9 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border">
-                        <template v-for="row in decomposedAttributions" :key="row.name">
-                        <tr @click="showDetail(row.name, 'attribution')" :class="['group align-top transition-colors cursor-pointer hover:bg-primary/5', isDetailOpen(row.name, 'attribution') ? 'bg-primary/5' : '']">
+                        <tr v-for="row in decomposedAttributions" :key="row.name" class="hover:bg-gray-50/50 align-top">
                             <td class="px-4 py-4">
-                                <div class="flex items-center gap-2">
-                                    <i :data-lucide="isDetailOpen(row.name, 'attribution') ? 'chevron-down' : 'chevron-right'" class="w-4 h-4 text-gray-400 group-hover:text-primary transition-transform"></i>
-                                    <div class="font-medium text-gray-900">{{ row.name }}</div>
-                                </div>
+                                <div class="font-medium text-gray-900">{{ row.name }}</div>
                                 <div class="text-xs text-gray-500 mt-1">引导成交业绩 {{ row.currGmvLabel }}</div>
                             </td>
                             <td class="px-4 py-4">
@@ -567,84 +287,6 @@
                                 <div class="text-xs text-gray-500 mt-2 leading-relaxed">{{ row.judgementDesc }}</div>
                             </td>
                         </tr>
-                        <tr v-if="isDetailOpen(row.name, 'attribution')">
-                            <td colspan="5" class="p-0 border-b border-border">
-                                <div class="bg-gray-50/80 p-6 shadow-inner">
-                                    <div class="flex justify-between items-center mb-4">
-                                        <h3 class="font-bold text-gray-800">{{ row.name }} - 近12个月表现诊断</h3>
-                                        <div class="flex gap-2">
-                                            <button v-for="metric in detailMetricOptions" 
-                                                    :key="metric.key"
-                                                    @click.stop="detailMetric = metric.key"
-                                                    :class="['px-3 py-1.5 text-xs font-semibold rounded transition-colors', detailMetric === metric.key ? 'bg-primary text-white shadow-sm' : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-100']">
-                                                {{ metric.label }}
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div v-if="getModuleEventPanel(row.name).hasEvents" class="mb-4 rounded-xl border border-slate-200 bg-white/90 p-4">
-                                        <div class="flex items-center justify-between gap-4">
-                                            <div>
-                                                <div class="text-sm font-semibold text-gray-800">关键动作注释</div>
-                                                <div class="text-xs text-gray-500 mt-1">图内已同步标注灰度区间与上线节点，hover 月份可一起看指标和动作。</div>
-                                            </div>
-                                            <div class="text-xs text-gray-500 whitespace-nowrap">{{ getModuleEventPanel(row.name).totalEvents }} 个事件节点</div>
-                                        </div>
-                                        <div class="mt-3 space-y-3">
-                                            <div v-for="group in getModuleEventPanel(row.name).groups" :key="group.key" class="rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-3">
-                                                <div class="flex items-center justify-between gap-3">
-                                                    <div class="text-sm font-semibold text-gray-800">{{ group.title }}</div>
-                                                    <div class="text-xs text-gray-500 whitespace-nowrap">{{ group.monthRangeLabel }}</div>
-                                                </div>
-                                                <div class="mt-2 flex flex-wrap gap-2">
-                                                    <span v-for="step in group.steps" :key="step.key" :class="['inline-flex max-w-full whitespace-normal break-all text-left leading-relaxed items-center rounded-full px-2.5 py-1 text-xs font-medium', step.badgeClass]">
-                                                        {{ step.label }}
-                                                    </span>
-                                                </div>
-                                                <div class="mt-2 text-xs text-gray-600 leading-relaxed">{{ group.content }}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div v-else class="mb-4 rounded-lg border border-dashed border-slate-200 bg-white/70 px-4 py-3 text-xs text-gray-500">
-                                        当前模块暂无已接入的事件标注。
-                                    </div>
-                                    <div class="relative">
-                                        <div
-                                            v-if="getModuleEventBands(row.name).length || getModuleEventMarkers(row.name).length"
-                                            class="pointer-events-none absolute z-10"
-                                            :style="getDetailChartOverlayStyle()"
-                                        >
-                                            <div
-                                                v-for="band in getModuleEventBands(row.name)"
-                                                :key="band.key"
-                                                class="absolute inset-y-0 rounded-md"
-                                                :style="{
-                                                    left: band.left,
-                                                    width: band.width,
-                                                    backgroundColor: band.backgroundColor
-                                                }"
-                                            >
-                                                <div class="absolute left-1 top-1 rounded bg-white/90 px-1.5 py-0.5 text-[10px] font-medium text-slate-700 shadow-sm">
-                                                    {{ band.label }}
-                                                </div>
-                                            </div>
-                                            <div
-                                                v-for="marker in getModuleEventMarkers(row.name)"
-                                                :key="marker.key"
-                                                class="absolute top-0 bottom-0 w-0"
-                                                :style="{ left: marker.left }"
-                                            >
-                                                <div class="absolute inset-y-0 border-l-2" :style="{ borderColor: marker.lineColor }"></div>
-                                                <div class="absolute left-1 top-1 rounded bg-white px-1.5 py-0.5 text-[10px] font-medium shadow-sm" :style="{ color: marker.lineColor }">
-                                                    {{ marker.label }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div :id="'detailChart-' + row.name" class="w-full h-[280px]"></div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        </template>
                         <tr v-if="decomposedAttributions.length === 0">
                             <td colspan="5" class="px-4 py-8 text-center text-gray-500">本月无可拆解数据</td>
                         </tr>
@@ -756,96 +398,44 @@
                             <th @click="sortTable('引导成交业绩')" class="px-6 py-4 font-semibold cursor-pointer hover:text-gray-800 whitespace-nowrap">
                                 引导成交业绩 <i data-lucide="arrow-down-up" class="w-3 h-3 inline"></i>
                             </th>
+                            <th class="px-6 py-4 font-semibold whitespace-nowrap text-center">状态标签</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border">
                         <template v-for="row in sortedTableData" :key="row['模块']">
-                            <tr @click="row['模块'] !== '全站' && showDetail(row['模块'], 'overview')" :class="['group transition-colors', row['模块'] === '全站' ? 'bg-gray-50 font-semibold' : 'hover:bg-primary/5 cursor-pointer', isDetailOpen(row['模块'], 'overview') ? 'bg-primary/5' : '']">
+                            <tr @click="row['模块'] !== '全站' && toggleDetail(row['模块'])" :class="['group transition-colors', row['模块'] === '全站' ? 'bg-gray-50 font-semibold' : 'hover:bg-primary/5 cursor-pointer', activeDetail === row['模块'] ? 'bg-primary/5' : '']">
                                 <td class="px-6 py-4 text-gray-900 flex items-center gap-2">
-                                    <i v-if="row['模块'] !== '全站'" :data-lucide="isDetailOpen(row['模块'], 'overview') ? 'chevron-down' : 'chevron-right'" class="w-4 h-4 text-gray-400 group-hover:text-primary transition-transform"></i>
+                                    <i v-if="row['模块'] !== '全站'" :data-lucide="activeDetail === row['模块'] ? 'chevron-down' : 'chevron-right'" class="w-4 h-4 text-gray-400 group-hover:text-primary transition-transform"></i>
                                     {{ row['模块'] }}
                                 </td>
                                 <td class="px-6 py-4 text-gray-600">{{ formatNum(row['曝光UV(udid)']) }}</td>
                                 <td class="px-6 py-4 text-gray-600">{{ formatPct(row['支付转化率']) }}</td>
                                 <td class="px-6 py-4 text-gray-600">¥{{ formatVal(row['UV(udid)价值']) }}</td>
                                 <td class="px-6 py-4 text-gray-900 font-medium">¥{{ formatNum(row['引导成交业绩']) }}</td>
+                                <td class="px-6 py-4 text-center">
+                                    <span v-if="row.tag === '表现优'" class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-semibold">表现优</span>
+                                    <span v-else-if="row.tag === '风险'" class="px-2 py-1 bg-rose-100 text-rose-700 rounded text-xs font-semibold">风险</span>
+                                    <span v-else-if="row.tag === '需关注'" class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-semibold">需关注</span>
+                                    <span v-else class="text-gray-400">-</span>
+                                </td>
                             </tr>
                             
                             <!-- Single Module Diagnostic Expand -->
-                            <tr v-if="isDetailOpen(row['模块'], 'overview')">
-                                <td colspan="5" class="p-0 border-b border-border">
+                            <tr v-if="activeDetail === row['模块']">
+                                <td colspan="6" class="p-0 border-b border-border">
                                     <div class="bg-gray-50/80 p-6 shadow-inner">
                                         <div class="flex justify-between items-center mb-4">
                                             <h3 class="font-bold text-gray-800">{{ row['模块'] }} - 近12个月表现诊断</h3>
                                             <div class="flex gap-2">
-                                                <button v-for="metric in detailMetricOptions" 
-                                                        :key="metric.key"
-                                                        @click.stop="detailMetric = metric.key"
-                                                        :class="['px-3 py-1.5 text-xs font-semibold rounded transition-colors', detailMetric === metric.key ? 'bg-primary text-white shadow-sm' : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-100']">
-                                                    {{ metric.label }}
+                                                <button v-for="metric in ['曝光/UV价值', '支付转化率', '引导成交业绩']" 
+                                                        :key="metric"
+                                                        @click="detailMetric = metric"
+                                                        :class="['px-3 py-1.5 text-xs font-semibold rounded transition-colors', detailMetric === metric ? 'bg-primary text-white shadow-sm' : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-100']">
+                                                    {{ metric }}
                                                 </button>
                                             </div>
                                         </div>
-                                        <div v-if="getModuleEventPanel(row['模块']).hasEvents" class="mb-4 rounded-xl border border-slate-200 bg-white/90 p-4">
-                                            <div class="flex items-center justify-between gap-4">
-                                                <div>
-                                                    <div class="text-sm font-semibold text-gray-800">关键动作注释</div>
-                                                    <div class="text-xs text-gray-500 mt-1">图内已同步标注灰度区间与上线节点，hover 月份可一起看指标和动作。</div>
-                                                </div>
-                                                <div class="text-xs text-gray-500 whitespace-nowrap">{{ getModuleEventPanel(row['模块']).totalEvents }} 个事件节点</div>
-                                            </div>
-                                            <div class="mt-3 space-y-3">
-                                                <div v-for="group in getModuleEventPanel(row['模块']).groups" :key="group.key" class="rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-3">
-                                                    <div class="flex items-center justify-between gap-3">
-                                                        <div class="text-sm font-semibold text-gray-800">{{ group.title }}</div>
-                                                        <div class="text-xs text-gray-500 whitespace-nowrap">{{ group.monthRangeLabel }}</div>
-                                                    </div>
-                                                    <div class="mt-2 flex flex-wrap gap-2">
-                                                        <span v-for="step in group.steps" :key="step.key" :class="['inline-flex max-w-full whitespace-normal break-all text-left leading-relaxed items-center rounded-full px-2.5 py-1 text-xs font-medium', step.badgeClass]">
-                                                            {{ step.label }}
-                                                        </span>
-                                                    </div>
-                                                    <div class="mt-2 text-xs text-gray-600 leading-relaxed">{{ group.content }}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div v-else class="mb-4 rounded-lg border border-dashed border-slate-200 bg-white/70 px-4 py-3 text-xs text-gray-500">
-                                            当前模块暂无已接入的事件标注。
-                                        </div>
-                                        <div class="relative">
-                                            <div
-                                                v-if="getModuleEventBands(row['模块']).length || getModuleEventMarkers(row['模块']).length"
-                                                class="pointer-events-none absolute z-10"
-                                                :style="getDetailChartOverlayStyle()"
-                                            >
-                                                <div
-                                                    v-for="band in getModuleEventBands(row['模块'])"
-                                                    :key="band.key"
-                                                    class="absolute inset-y-0 rounded-md"
-                                                    :style="{
-                                                        left: band.left,
-                                                        width: band.width,
-                                                        backgroundColor: band.backgroundColor
-                                                    }"
-                                                >
-                                                    <div class="absolute left-1 top-1 rounded bg-white/90 px-1.5 py-0.5 text-[10px] font-medium text-slate-700 shadow-sm">
-                                                        {{ band.label }}
-                                                    </div>
-                                                </div>
-                                                <div
-                                                    v-for="marker in getModuleEventMarkers(row['模块'])"
-                                                    :key="marker.key"
-                                                    class="absolute top-0 bottom-0 w-0"
-                                                    :style="{ left: marker.left }"
-                                                >
-                                                    <div class="absolute inset-y-0 border-l-2" :style="{ borderColor: marker.lineColor }"></div>
-                                                    <div class="absolute left-1 top-1 rounded bg-white px-1.5 py-0.5 text-[10px] font-medium shadow-sm" :style="{ color: marker.lineColor }">
-                                                        {{ marker.label }}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div :id="'detailChart-' + row['模块']" class="w-full h-[280px]"></div>
-                                        </div>
+                                        <div :id="'detailChart-' + row['模块']" class="w-full h-[280px]"></div>
                                     </div>
                                 </td>
                             </tr>
@@ -862,58 +452,19 @@
 const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
 
 const sourceData = window.dashboardSourceData?.rows || [];
-const eventSourceRows = window.moduleEventSourceData?.rows || [];
 
 // Helpers
 const formatNum = (v) => v >= 10000 ? (v/10000).toFixed(1) + 'W' : (v||0).toLocaleString();
 const formatPct = (v) => ((v||0) * 100).toFixed(2) + '%';
 const formatVal = (v) => (v||0).toFixed(2);
 const formatMonth = (str) => `${str.substring(0,4)}年${str.substring(4)}月`;
-const formatEventDate = (str) => {
-    if (!str) return '';
-    if (str === '至今') return '至今';
-    const clean = String(str).trim().split(' ')[0];
-    return /^\d{4}-\d{2}-\d{2}$/.test(clean) ? clean.slice(5).replace('-', '.') : clean;
-};
-const formatEventDateRange = (start, end) => {
-    if (!start && !end) return '';
-    if (!end || start === end) return formatEventDate(start);
-    return `${formatEventDate(start)} - ${formatEventDate(end)}`;
-};
-const formatMonthCompact = (str) => str ? `${str.substring(0,4)}.${str.substring(4)}` : '';
-const formatMonthTitle = (str) => str ? `${str.substring(2,4)}年${Number(str.substring(4))}月` : '';
-const parseDate = (str) => {
-    if (!str) return null;
-    const clean = String(str).trim().split(' ')[0];
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(clean)) return null;
-    const [year, month, day] = clean.split('-').map(Number);
-    if (!year || !month || !day) return null;
-    return new Date(Date.UTC(year, month - 1, day));
-};
-const monthStartDate = (monthStr) => parseDate(`${monthStr.slice(0, 4)}-${monthStr.slice(4)}-01`);
-const monthEndDate = (monthStr) => new Date(Date.UTC(Number(monthStr.slice(0, 4)), Number(monthStr.slice(4)), 0));
-const toISODate = (date) => {
-    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-};
 const formatShareDelta = (v) => `${v > 0 ? '+' : ''}${(v * 100).toFixed(2)}pp`;
 const formatEffectVal = (v, isPct = false) => isPct ? `${v > 0 ? '+' : ''}${(v * 100).toFixed(2)}pp` : `${v > 0 ? '+' : ''}${v.toFixed(4)}`;
 const formatMetricDelta = (v, isPct = false) => isPct ? `${v > 0 ? '+' : ''}${(v * 100).toFixed(2)}pp` : `${v > 0 ? '+' : ''}${v.toFixed(2)}`;
 const formatSignedPct = (v, digits = 1) => `${v > 0 ? '+' : ''}${(v * 100).toFixed(digits)}%`;
-const escapeHtml = (str) => String(str ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-const formatTooltipText = (str) => escapeHtml(str).replace(/\n/g, '<br/>');
 
 // Color tokens
 const cRed = '#e11d48';
-const cBlue = '#2563eb';
 const cGreen = '#10b981';
 const cGray = '#9ca3af';
 
@@ -921,219 +472,18 @@ const app = createApp({
     setup() {
         // Prepare global state
         const allMonths = [...new Set(sourceData.map(d => d['月份']))].sort();
-        const latestVisibleMonth = allMonths[allMonths.length - 1] || '';
-        const latestVisibleDate = latestVisibleMonth ? monthEndDate(latestVisibleMonth) : null;
         const currentMonth = ref(allMonths[allMonths.length - 1] || '202602');
-        const summaryMonthLabel = computed(() => formatMonthTitle(currentMonth.value));
-        const sourceModules = new Set(sourceData.map(d => d['模块']));
-        const eventThemeMap = {
-            gray: {
-                badgeClass: 'bg-sky-100 text-sky-700',
-                lineColor: '#2563eb',
-                areaColor: 'rgba(37, 99, 235, 0.16)',
-                shortLabel: '灰度'
-            },
-            launch: {
-                badgeClass: 'bg-emerald-100 text-emerald-700',
-                lineColor: '#10b981',
-                areaColor: 'rgba(16, 185, 129, 0.14)',
-                shortLabel: '上线'
-            },
-            rollback: {
-                badgeClass: 'bg-rose-100 text-rose-700',
-                lineColor: '#e11d48',
-                areaColor: 'rgba(225, 29, 72, 0.14)',
-                shortLabel: '回退'
-            }
-        };
         
         // Active UI States
         const activeCard = ref(2); // Default open UV value
         const sortKey = ref('引导成交业绩');
         const sortDesc = ref(true);
         const activeDetail = ref(null);
-        const detailSection = ref(null);
-        const detailMetricOptions = [
-            { key: 'dual', label: '曝光/UV价值' },
-            { key: 'cvr', label: '支付转化率' },
-            { key: 'gmv', label: '引导成交业绩' }
-        ];
-        const detailMetric = ref(detailMetricOptions[0].key);
+        const detailMetric = ref('曝光/UV价值');
         
         let trendChartInst = null;
         let priorityMatrixChartInst = null;
         let detailChartInst = null;
-
-        const getEventVisibleStartDate = (event) => {
-            const parsedStart = parseDate(event.startDate);
-            return parsedStart || monthStartDate(event.startMonth);
-        };
-
-        const getEventVisibleEndDate = (event) => {
-            const parsedEnd = parseDate(event.endDate);
-            if (parsedEnd) return parsedEnd;
-            if (event.endDate === '至今' && latestVisibleDate) return latestVisibleDate;
-            return monthEndDate(event.endMonth);
-        };
-
-        const getEventDisplayDateRange = (event) => {
-            const start = toISODate(getEventVisibleStartDate(event));
-            const end = toISODate(getEventVisibleEndDate(event));
-            return formatEventDateRange(start, end);
-        };
-
-        const moduleEventPanels = computed(() => {
-            const matchedRows = eventSourceRows
-                .filter(row => sourceModules.has(row.module))
-                .map(row => ({
-                    ...row,
-                    startMonth: /^\d{6}$/.test(String(row.startMonth || '')) ? String(row.startMonth) : latestVisibleMonth,
-                    endMonth: /^\d{6}$/.test(String(row.endMonth || '')) ? String(row.endMonth) : (/^\d{6}$/.test(String(row.startMonth || '')) ? String(row.startMonth) : latestVisibleMonth),
-                    startDate: row.startDate || '',
-                    endDate: row.endDate || '',
-                    effectReview: row.effectReview || '',
-                    theme: eventThemeMap[row.typeKey] || eventThemeMap.launch
-                }))
-                .sort((a, b) => (a.startDate || '').localeCompare(b.startDate || ''));
-
-            const panelMap = {};
-            matchedRows.forEach(event => {
-                if (!panelMap[event.module]) {
-                    panelMap[event.module] = {
-                        hasEvents: false,
-                        totalEvents: 0,
-                        events: [],
-                        groups: [],
-                        monthEventMap: Object.fromEntries(allMonths.map(month => [month, []]))
-                    };
-                }
-                panelMap[event.module].events.push(event);
-            });
-
-            Object.keys(panelMap).forEach(moduleName => {
-                const panel = panelMap[moduleName];
-                panel.hasEvents = panel.events.length > 0;
-                panel.totalEvents = panel.events.length;
-
-                panel.events.forEach(event => {
-                    allMonths.forEach(month => {
-                        if (month >= event.startMonth && month <= event.endMonth) {
-                            panel.monthEventMap[month].push(event);
-                        }
-                    });
-                });
-
-                const grouped = {};
-                panel.events.forEach(event => {
-                    const groupKey = `${event.module}__${event.title}`;
-                    if (!grouped[groupKey]) grouped[groupKey] = [];
-                    grouped[groupKey].push(event);
-                });
-
-                panel.groups = Object.entries(grouped).map(([groupKey, items]) => {
-                    const sortedItems = [...items].sort((a, b) => (a.startDate || '').localeCompare(b.startDate || ''));
-                    const first = sortedItems[0];
-                    const last = sortedItems[sortedItems.length - 1];
-                    return {
-                        key: groupKey,
-                        title: first.title,
-                        content: first.content,
-                        monthRangeLabel: first.startMonth === last.endMonth
-                            ? formatMonthCompact(first.startMonth)
-                            : `${formatMonthCompact(first.startMonth)} - ${formatMonthCompact(last.endMonth)}`,
-                        steps: sortedItems.map(item => ({
-                            key: item.id,
-                            badgeClass: item.theme.badgeClass,
-                            label: item.typeKey === 'gray'
-                                ? `灰度 ${getEventDisplayDateRange(item)}${item.grayPlan ? ` · ${item.grayPlan}` : ''}`
-                                : item.typeKey === 'rollback'
-                                    ? `回退 ${getEventDisplayDateRange(item)}`
-                                    : `上线 ${getEventDisplayDateRange(item)}`
-                        }))
-                    };
-                });
-            });
-
-            return panelMap;
-        });
-
-        const getModuleEventPanel = (moduleName) => moduleEventPanels.value[moduleName] || {
-            hasEvents: false,
-            totalEvents: 0,
-            events: [],
-            groups: [],
-            monthEventMap: {}
-        };
-
-        const getModuleEventBands = (moduleName) => {
-            const panel = getModuleEventPanel(moduleName);
-            const visibleStart = monthStartDate(allMonths[0]);
-            const visibleEnd = monthEndDate(allMonths[allMonths.length - 1]);
-            const monthSpan = allMonths.length;
-            const getDateOffset = (date) => {
-                const monthKey = `${date.getUTCFullYear()}${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
-                const monthIndex = allMonths.indexOf(monthKey);
-                const monthDays = monthEndDate(monthKey).getUTCDate();
-                const dayOffset = (date.getUTCDate() - 1) / monthDays;
-                return monthIndex + dayOffset;
-            };
-
-            return panel.events
-                .filter(event => event.phaseKey === 'range' && event.startMonth <= allMonths[allMonths.length - 1] && event.endMonth >= allMonths[0])
-                .map(event => {
-                    const rawStart = getEventVisibleStartDate(event);
-                    const rawEnd = getEventVisibleEndDate(event);
-                    const clampedStart = rawStart < visibleStart ? visibleStart : rawStart;
-                    const clampedEnd = rawEnd > visibleEnd ? visibleEnd : rawEnd;
-                    const startOffset = getDateOffset(clampedStart);
-                    const endOffset = getDateOffset(clampedEnd) + (1 / monthEndDate(`${clampedEnd.getUTCFullYear()}${String(clampedEnd.getUTCMonth() + 1).padStart(2, '0')}`).getUTCDate());
-                    const leftPct = (startOffset / monthSpan) * 100;
-                    const widthPct = Math.max(((endOffset - startOffset) / monthSpan) * 100, 0.8);
-                    return {
-                        key: event.id,
-                        label: event.theme.shortLabel,
-                        left: `${leftPct}%`,
-                        width: `${widthPct}%`,
-                        backgroundColor: event.theme.areaColor,
-                        borderColor: event.theme.lineColor
-                    };
-                });
-        };
-
-        const getModuleEventMarkers = (moduleName) => {
-            const panel = getModuleEventPanel(moduleName);
-            const monthSpan = allMonths.length;
-            const getDateOffset = (date) => {
-                const monthKey = `${date.getUTCFullYear()}${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
-                const monthIndex = allMonths.indexOf(monthKey);
-                const monthDays = monthEndDate(monthKey).getUTCDate();
-                const dayOffset = (date.getUTCDate() - 1) / monthDays;
-                return monthIndex + dayOffset;
-            };
-
-            return panel.events
-                .filter(event => event.phaseKey === 'point')
-                .map(event => {
-                    const date = getEventVisibleStartDate(event);
-                    const monthKey = `${date.getUTCFullYear()}${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
-                    if (!allMonths.includes(monthKey)) return null;
-                    const leftPct = (getDateOffset(date) / monthSpan) * 100;
-                    return {
-                        key: event.id,
-                        label: event.theme.shortLabel,
-                        left: `${leftPct}%`,
-                        lineColor: event.theme.lineColor
-                    };
-                })
-                .filter(Boolean);
-        };
-
-        const getDetailChartOverlayStyle = () => ({
-            left: '60px',
-            right: detailMetric.value === 'dual' ? '50px' : '20px',
-            top: detailMetric.value === 'dual' ? '30px' : '20px',
-            bottom: '20px'
-        });
 
         const getMonthData = (m) => sourceData.filter(d => d['月份'] === m);
         const getPrevMonth = (m) => {
@@ -1369,13 +719,6 @@ const app = createApp({
 
         const decomposedAttributions = computed(() => decomposedAttributionModel.value.rows);
         const decompositionSummary = computed(() => decomposedAttributionModel.value);
-        const headlineModules = computed(() => {
-            const rows = decomposedAttributions.value;
-            return {
-                drag: rows.find(row => row.totalEffect < 0) || null,
-                lift: rows.find(row => row.totalEffect > 0) || null
-            };
-        });
 
         const priorityMatrixModel = computed(() => {
             const currRows = getMonthData(currentMonth.value).filter(r => !['全站', '搜索结果', '推荐加权'].includes(r['模块']));
@@ -1473,7 +816,25 @@ const app = createApp({
 
         // Table Data & Sorting
         const tableData = computed(() => {
-            return getMonthData(currentMonth.value).filter(r => r['模块'] !== '搜索结果' && r['模块'] !== '推荐加权');
+            const data = getMonthData(currentMonth.value).filter(r => r['模块'] !== '搜索结果' && r['模块'] !== '推荐加权');
+            const prevData = getPrevMonth(currentMonth.value) ? getMonthData(getPrevMonth(currentMonth.value)) : [];
+
+            // Compute tags based on MoM and thresholds
+            return data.map(r => {
+                const pr = prevData.find(p => p['模块'] === r['模块']);
+                let tag = '-';
+                if (r['模块'] !== '全站') {
+                    const uvV = r['UV(udid)价值'];
+                    const puvV = pr ? pr['UV(udid)价值'] : null;
+                    if (puvV) {
+                        const mom = (uvV - puvV) / puvV;
+                        if (mom > 0.05) tag = '表现优';
+                        else if (mom < -0.1) tag = '风险';
+                        else if (mom < 0) tag = '需关注';
+                    }
+                }
+                return { ...r, tag };
+            });
         });
 
         const sortedTableData = computed(() => {
@@ -1498,26 +859,12 @@ const app = createApp({
             else { sortKey.value = key; sortDesc.value = true; }
         };
 
-        const showDetail = (modName, sectionKey) => {
-            if (activeDetail.value === modName && detailSection.value === sectionKey) {
-                activeDetail.value = null;
-                detailSection.value = null;
-                return;
+        const toggleDetail = (modName) => {
+            if (activeDetail.value === modName) activeDetail.value = null;
+            else {
+                activeDetail.value = modName;
+                nextTick(() => renderDetailChart(modName));
             }
-            activeDetail.value = modName;
-            detailSection.value = sectionKey;
-        };
-
-        const isDetailOpen = (modName, sectionKey) => activeDetail.value === modName && detailSection.value === sectionKey;
-
-        const queueDetailChartRender = (modName = activeDetail.value) => {
-            if (!modName) return;
-            nextTick(() => {
-                requestAnimationFrame(() => {
-                    renderDetailChart(modName);
-                    detailChartInst?.resize();
-                });
-            });
         };
 
         // ECharts rendering
@@ -1680,11 +1027,8 @@ const app = createApp({
             detailChartInst = echarts.init(el);
 
             const xData = allMonths.map(formatMonth);
-            const eventPanel = getModuleEventPanel(modName);
-            const detailMetricConfig = detailMetricOptions.find(metric => metric.key === detailMetric.value) || detailMetricOptions[0];
-            const isPct = detailMetric.value === 'cvr';
-            const isDual = detailMetric.value === 'dual';
-            const metricField = detailMetric.value === 'gmv' ? '引导成交业绩' : '支付转化率';
+            const isPct = detailMetric.value === '支付转化率';
+            const isDual = detailMetric.value === '曝光/UV价值';
 
             let yAxis = [];
             let series = [];
@@ -1705,70 +1049,32 @@ const app = createApp({
                 series = [
                     {
                         name: '曝光UV', type: 'line', smooth: true, data: uvData,
-                        itemStyle: { color: cBlue },
-                        lineStyle: { color: cBlue, width: 2 },
+                        itemStyle: { color: cRed },
+                        areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0, color:'rgba(225,29,72,0.2)'}, {offset:1, color:'rgba(225,29,72,0)'}]) },
                         tooltip: { valueFormatter: (v) => formatNum(v) }
                     },
                     {
                         name: 'UV价值', type: 'line', yAxisIndex: 1, smooth: true, data: valData,
-                        itemStyle: { color: cRed },
-                        lineStyle: { color: cRed, width: 3 },
-                        areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0, color:'rgba(225,29,72,0.16)'}, {offset:1, color:'rgba(225,29,72,0)'}]) },
+                        itemStyle: { color: cGray }, lineStyle: { type: 'dashed' },
                         tooltip: { valueFormatter: (v) => '¥' + formatVal(v) }
                     }
                 ];
             } else {
                 const mData = allMonths.map(m => {
                     const d = getMonthData(m).find(r => r['模块'] === modName);
-                    return d ? d[metricField] : 0;
+                    return d ? d[detailMetric.value] : 0;
                 });
                 yAxis = { type: 'value', scale: true, splitLine: { lineStyle: {type:'dashed'}}, axisLabel: { formatter: (v) => isPct ? (v*100).toFixed(0)+'%' : formatNum(v) } };
                 series = [{
-                    name: detailMetricConfig.label, type: 'line', smooth: true, data: mData,
+                    name: detailMetric.value, type: 'line', smooth: true, data: mData,
                     itemStyle: { color: cRed },
                     areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0, color:'rgba(225,29,72,0.2)'}, {offset:1, color:'rgba(225,29,72,0)'}]) },
-                    tooltip: { valueFormatter: (v) => isPct ? (v*100).toFixed(2)+'%' : (detailMetric.value === 'gmv' ? '¥'+formatNum(v) : formatNum(v)) }
+                    tooltip: { valueFormatter: (v) => isPct ? (v*100).toFixed(2)+'%' : (detailMetric.value.includes('业绩') ? '¥'+formatNum(v) : formatNum(v)) }
                 }];
             }
 
             const option = {
-                tooltip: {
-                    trigger: 'axis',
-                    formatter: (params) => {
-                        const items = Array.isArray(params) ? params : [params];
-                        const monthKey = allMonths[items[0]?.dataIndex] || '';
-                        const tooltipShellStyle = 'max-width:360px;white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.6;';
-                        const lines = [`<div style="font-weight:700;margin-bottom:4px;">${formatMonth(monthKey)}</div>`];
-
-                        items.forEach(item => {
-                            const value = item.value;
-                            const valLabel = item.seriesName === '支付转化率'
-                                ? `${(value * 100).toFixed(2)}%`
-                                : item.seriesName.includes('业绩')
-                                    ? `¥${formatNum(value)}`
-                                    : item.seriesName.includes('UV价值')
-                                        ? `¥${formatVal(value)}`
-                                        : formatNum(value);
-                            lines.push(`${item.marker}${item.seriesName}: ${valLabel}`);
-                        });
-
-                        const monthEvents = eventPanel.monthEventMap[monthKey] || [];
-                        if (monthEvents.length) {
-                            lines.push('<div style="margin:6px 0;border-top:1px solid #e5e7eb;"></div>');
-                            lines.push('<div style="font-weight:700;margin-bottom:4px;">关键动作</div>');
-                            monthEvents.forEach(event => {
-                                const timeLabel = getEventDisplayDateRange(event);
-                                const extra = event.grayPlan ? ` · ${event.grayPlan}` : '';
-                                lines.push(`<div style="margin-bottom:4px;${tooltipShellStyle}">${event.theme.shortLabel}｜${timeLabel}${escapeHtml(extra)}｜${escapeHtml(event.title)}</div>`);
-                                if (event.effectReview) {
-                                    lines.push(`<div style="display:block;margin:0 0 6px 14px;color:#64748b;${tooltipShellStyle}">效果复盘：${formatTooltipText(event.effectReview)}</div>`);
-                                }
-                            });
-                        }
-
-                        return `<div style="${tooltipShellStyle}">${lines.join('<br/>')}</div>`;
-                    }
-                },
+                tooltip: { trigger: 'axis' },
                 legend: isDual ? { data: ['曝光UV', 'UV价值'], top: 0 } : { show: false },
                 grid: { top: isDual ? 30 : 20, right: isDual ? 50 : 20, bottom: 20, left: 60 },
                 xAxis: { type: 'category', data: xData },
@@ -1785,12 +1091,13 @@ const app = createApp({
         watch(currentMonth, () => {
             nextTick(() => {
                 renderPriorityMatrixChart();
+                if(activeDetail.value) renderDetailChart(activeDetail.value);
             });
         });
 
-        watch([activeDetail, detailMetric, currentMonth, detailSection], ([modName]) => {
-            queueDetailChartRender(modName);
-        }, { flush: 'post' });
+        watch(detailMetric, () => {
+            if(activeDetail.value) renderDetailChart(activeDetail.value);
+        });
 
         onMounted(() => {
             lucide.createIcons();
@@ -1808,11 +1115,9 @@ const app = createApp({
         return {
             allMonths,
             currentMonth: currentMonth,
-            summaryMonthLabel,
             formatMonth,
             metrics,
             aiAnalysis,
-            headlineModules,
             activeCard,
             activeCardTitle,
             toggleCard,
@@ -1825,14 +1130,8 @@ const app = createApp({
             sortDesc,
             sortTable,
             activeDetail,
-            showDetail,
-            isDetailOpen,
+            toggleDetail,
             detailMetric,
-            detailMetricOptions,
-            getModuleEventPanel,
-            getModuleEventBands,
-            getModuleEventMarkers,
-            getDetailChartOverlayStyle,
             formatNum,
             formatPct,
             formatVal

@@ -13,7 +13,8 @@ window.moduleEventSourceData = {
       endDate: "2026-01-12",
       title: "首页feeds排序模型补特征",
       content: "首页feeds排序模型补修饰词主体词特征（原只到类目粒度）",
-      grayPlan: "50%:50%"
+      grayPlan: "50%:50%",
+      effectReview: ""
     },
     {
       id: "EVT-202601-002",
@@ -28,7 +29,8 @@ window.moduleEventSourceData = {
       endDate: "2026-01-14",
       title: "首页feeds排序模型补特征",
       content: "首页feeds排序模型补修饰词主体词特征（原只到类目粒度）",
-      grayPlan: ""
+      grayPlan: "",
+      effectReview: ""
     },
     {
       id: "EVT-202512-001",
@@ -42,8 +44,9 @@ window.moduleEventSourceData = {
       startDate: "2025-12-30",
       endDate: "2026-01-12",
       title: "购物车推荐改版",
-      content: "购物车推荐改版：老算法仅用刚点商品做少量相似推荐，新算法引入近90天标签、协同、周期购、历史召回、实时信号等加权融合。",
-      grayPlan: "33%:33%:33%"
+      content: "购物车推荐改版（老算法（商品数仅几十，仅利用用户刚点的3个sku做相似推荐+少量热门），新算法（利用近90天数据标签+协同+周期购+历史召回  加权融合，+实时信号推荐，+削弱当日加购品类，商品数数百）",
+      grayPlan: "33%:33%:33%",
+      effectReview: ""
     },
     {
       id: "EVT-202601-003",
@@ -57,8 +60,9 @@ window.moduleEventSourceData = {
       startDate: "2026-01-15",
       endDate: "2026-01-15",
       title: "购物车推荐改版",
-      content: "购物车推荐改版：老算法仅用刚点商品做少量相似推荐，新算法引入近90天标签、协同、周期购、历史召回、实时信号等加权融合。",
-      grayPlan: ""
+      content: "购物车推荐改版（老算法（商品数仅几十，仅利用用户刚点的3个sku做相似推荐+少量热门），新算法（利用近90天数据标签+协同+周期购+历史召回  加权融合，+实时信号推荐，+削弱当日加购品类，商品数数百）",
+      grayPlan: "",
+      effectReview: ""
     },
     {
       id: "EVT-202602-002",
@@ -72,8 +76,9 @@ window.moduleEventSourceData = {
       startDate: "2026-02-10",
       endDate: "2026-02-27",
       title: "首页feeds双塔召回加特征",
-      content: "首页feeds u2i 双塔召回模型补修饰词主体词特征。",
-      grayPlan: "50%:50%"
+      content: "首页feeds u2i双塔召回模型补修饰词主体词特征",
+      grayPlan: "50%:50%",
+      effectReview: ""
     },
     {
       id: "EVT-202603-001",
@@ -87,8 +92,9 @@ window.moduleEventSourceData = {
       startDate: "2026-03-02",
       endDate: "2026-03-02",
       title: "首页feeds双塔召回加特征",
-      content: "首页feeds u2i 双塔召回模型补修饰词主体词特征。",
-      grayPlan: ""
+      content: "首页feeds u2i双塔召回模型补修饰词主体词特征",
+      grayPlan: "",
+      effectReview: ""
     },
     {
       id: "EVT-202512-004",
@@ -102,98 +108,121 @@ window.moduleEventSourceData = {
       startDate: "2025-12-30",
       endDate: "2025-12-30",
       title: "结算页顺手买点击排序模型加特征",
-      content: "结算页顺手买点击排序模型加入用户历史笔单特征，并交叉订单商品总额与候选商品价格等信号。",
-      grayPlan: ""
+      content: "结算页顺手买点击排序模型加用户历史笔单特征，交叉结算页基础订单商品总额、另已有候选顺手买商品价格特征",
+      grayPlan: "",
+      effectReview: ""
     },
     {
-      id: "EVT-202512-002",
-      module: "分类页主商品",
+      id: "EVT-202603-002",
+      module: "首页feeds",
       typeKey: "gray",
       typeLabel: "灰度",
       phaseKey: "range",
       phaseLabel: "阶段事件",
-      startMonth: "202512",
-      endMonth: "202601",
-      startDate: "2025-12-22",
-      endDate: "2026-01-18",
-      title: "分类页商品个性化排序",
-      content: "分类页商品个性化排序替代原人工顺序。",
-      grayPlan: "50%:50%"
+      startMonth: "202603",
+      endMonth: "202603",
+      startDate: "2026-03-03",
+      endDate: "2026-03-05",
+      title: "首页feeds腾讯算法VS自有算法",
+      content: "首页feeds腾讯算法VS我们算法",
+      grayPlan: "2.4%（实验店腾讯算法）：2.4%（实验店自有算法）：95.2%（非实验店自有算法）",
+      effectReview: "RT组UV价值1.38.Tencent组UV价值0.93，实验结果明显负向"
     },
     {
-      id: "EVT-202601-004",
-      module: "分类页主商品",
-      typeKey: "launch",
-      typeLabel: "全量上线",
-      phaseKey: "point",
-      phaseLabel: "点事件",
-      startMonth: "202601",
-      endMonth: "202601",
-      startDate: "2026-01-13",
-      endDate: "2026-01-20",
-      title: "分类页全量走个性化排序",
-      content: "分类页商品全量切到个性化排序。",
-      grayPlan: ""
-    },
-    {
-      id: "EVT-202601-005",
-      module: "分类页主商品",
+      id: "EVT-202603-003",
+      module: "首页feeds",
       typeKey: "rollback",
       typeLabel: "回退",
       phaseKey: "range",
       phaseLabel: "阶段事件",
-      startMonth: "202601",
-      endMonth: "202602",
-      startDate: "2026-01-21",
-      endDate: "2026-02-08",
-      title: "分类页主商品回退到人工排序",
-      content: "因更新时效不达预期，全量关停并回退到人工排序。",
-      grayPlan: ""
+      startMonth: "202603",
+      endMonth: "202603",
+      startDate: "2026-03-06",
+      endDate: "2026-03-15",
+      title: "首页feeds全部回退到自有算法",
+      content: "首页feeds全部回退到自有算法",
+      grayPlan: "",
+      effectReview: ""
     },
     {
-      id: "EVT-202602-001",
-      module: "分类页主商品",
-      typeKey: "launch",
-      typeLabel: "全量上线",
-      phaseKey: "point",
-      phaseLabel: "点事件",
-      startMonth: "202602",
-      endMonth: "202602",
-      startDate: "2026-02-09",
-      endDate: "2026-02-09",
-      title: "分类页全量走个性化排序",
-      content: "分类页商品重新全量切到个性化排序。",
-      grayPlan: ""
-    },
-    {
-      id: "EVT-202512-003",
-      module: "券适用商品列表页",
+      id: "EVT-202603-004",
+      module: "购物车底部推荐",
       typeKey: "gray",
       typeLabel: "灰度",
       phaseKey: "range",
       phaseLabel: "阶段事件",
-      startMonth: "202512",
-      endMonth: "202601",
-      startDate: "2025-12-31",
-      endDate: "2026-01-12",
-      title: "券适用商品个性化排序",
-      content: "券适用商品列表页灰度切到个性化排序。",
-      grayPlan: ""
+      startMonth: "202603",
+      endMonth: "202603",
+      startDate: "2026-03-03",
+      endDate: "2026-03-05",
+      title: "购物车推荐腾讯算法VS自有算法",
+      content: "购物车推荐腾讯算法VS我们算法",
+      grayPlan: "2.4%（实验店腾讯算法）：2.4%（实验店自有算法）：95.2%（非实验店自有算法）",
+      effectReview: ""
     },
     {
-      id: "EVT-202601-006",
-      module: "券适用商品列表页",
-      typeKey: "launch",
-      typeLabel: "全量上线",
-      phaseKey: "point",
-      phaseLabel: "点事件",
-      startMonth: "202601",
-      endMonth: "202601",
-      startDate: "2026-01-28",
-      endDate: "2026-01-28",
-      title: "券适用商品个性化排序",
-      content: "券适用商品列表页全量切到个性化排序。",
-      grayPlan: ""
+      id: "EVT-202603-005",
+      module: "购物车底部推荐",
+      typeKey: "rollback",
+      typeLabel: "回退",
+      phaseKey: "range",
+      phaseLabel: "阶段事件",
+      startMonth: "202603",
+      endMonth: "202603",
+      startDate: "2026-03-06",
+      endDate: "2026-03-15",
+      title: "购物车推荐全部回退到自有算法",
+      content: "购物车推荐全部回退到自有算法",
+      grayPlan: "",
+      effectReview: ""
+    },
+    {
+      id: "EVT-202603-006",
+      module: "首页feeds",
+      typeKey: "gray",
+      typeLabel: "灰度",
+      phaseKey: "range",
+      phaseLabel: "阶段事件",
+      startMonth: "202603",
+      endMonth: "202603",
+      startDate: "2026-03-16",
+      endDate: "至今",
+      title: "腾讯2.0算法VS我们算法",
+      content: "腾讯2.0算法VS我们算法",
+      grayPlan: "3.9%（实验店腾讯算法）：3.9%（实验店自有算法）：92.2%（非实验店自有算法）",
+      effectReview: "对照组首页 feeds UV 价值2.17%；\n实验组2.24%，相对于对照组提升 3.23%；UV转化率两组均为8.92%（看小数点实验组微跌0.08%），PV点击率对照组1.58%，实验组1.57%，微跌0.86%，因放量20家门店，每组流量仅6-7k"
+    },
+    {
+      id: "EVT-202603-007",
+      module: "购物车底部推荐",
+      typeKey: "gray",
+      typeLabel: "灰度",
+      phaseKey: "range",
+      phaseLabel: "阶段事件",
+      startMonth: "202603",
+      endMonth: "202603",
+      startDate: "2026-03-27",
+      endDate: "至今",
+      title: "腾讯2.0算法VS我们算法",
+      content: "腾讯2.0算法VS我们算法",
+      grayPlan: "3.9%（实验店腾讯算法）：3.9%（实验店自有算法）：92.2%（非实验店自有算法）",
+      effectReview: "RT 组与 Tencent 组核心指标表现如下：在 UV 转化率维度，RT 组均值为 0.049，Tencent 组均值为 0.062，Tencent 组较 RT 组提升 26.22%；在 UV 价值维度，RT 组均值为 0.952，Tencent 组均值为 1.495，Tencent 组较 RT 组提升 57.01%；在 PV 点击率维度，RT 组均值为 0.012，Tencent 组均值为 0.013，Tencent 组较 RT 组提升 8.77%。"
+    },
+    {
+      id: "EVT-202602-003",
+      module: "商详推荐",
+      typeKey: "gray",
+      typeLabel: "灰度",
+      phaseKey: "range",
+      phaseLabel: "阶段事件",
+      startMonth: "202602",
+      endMonth: "202603",
+      startDate: "2026-02-14",
+      endDate: "至今",
+      title: "商详推荐搭配相似tab位置互换",
+      content: "商详推荐搭配相似tab位置互换",
+      grayPlan: "50%:50%",
+      effectReview: "基于2.14-3.4数据分析：推荐模块 UV 点击率：对照组（相似在前）为 17.87%，实验组（搭配在前）为 7.36%，实验组较对照组大幅下滑 58.83%；\n推荐模块 UV 转化率：对照组（相似在前）为 4.33%，实验组（搭配在前）为 1.47%，实验组较对照组大幅下滑 66.07%；\n推荐模块 UV 价值：对照组（相似在前）为 1.396，实验组（搭配在前）为 0.426，实验组较对照组大幅下滑 69.49%。"
     }
   ]
 };
