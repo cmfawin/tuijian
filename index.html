@@ -623,6 +623,82 @@
             </div>
         </section>
 
+        <section class="bg-surface rounded-xl border border-border p-6 shadow-sm">
+            <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between mb-6">
+                <div class="max-w-3xl">
+                    <h2 class="text-lg font-bold text-gray-900">模块重要性与优先级分析</h2>
+                    <p class="text-sm text-gray-500 leading-relaxed mt-2">
+                        用当前模块类型内部的业绩权重衡量重要性，用 UV价值相对同类型盘均值衡量效率表现。右下象限代表高权重但低效率，是优先优化区；左上象限代表低权重但高效率，适合放量验证。
+                    </p>
+                    <div class="mt-4 inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+                        <button
+                            v-for="option in priorityMatrixScopeOptions"
+                            :key="option.key"
+                            @click="priorityMatrixScope = option.key"
+                            type="button"
+                            :class="['px-3 py-1.5 text-sm font-semibold rounded-md transition-colors', priorityMatrixScope === option.key ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-800']"
+                        >
+                            {{ option.label }}
+                        </button>
+                    </div>
+                </div>
+                <div class="grid gap-3 md:grid-cols-3 xl:min-w-[520px]">
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">权重分界</div>
+                        <div class="text-lg font-bold text-gray-900">{{ priorityMatrixSummary.medianWeightLabel }}</div>
+                        <div class="text-xs text-gray-500 mt-1">{{ priorityMatrixSummary.scopeLabel }}业绩权重中位数</div>
+                    </div>
+                    <div class="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3">
+                        <div class="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-1">优先优化</div>
+                        <div class="text-lg font-bold text-orange-700">{{ priorityMatrixSummary.optimizeCount }}</div>
+                        <div class="text-xs text-orange-700/80 mt-1">高权重且低于盘均 UV价值</div>
+                    </div>
+                    <div class="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+                        <div class="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-1">放量验证</div>
+                        <div class="text-lg font-bold text-emerald-700">{{ priorityMatrixSummary.scaleCount }}</div>
+                        <div class="text-xs text-emerald-700/80 mt-1">低权重但高于盘均 UV价值</div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+                <div id="priorityMatrixChart" class="w-full h-[520px]"></div>
+                <div class="flex flex-col gap-4">
+                    <div class="rounded-lg border border-orange-100 bg-orange-50 p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-orange-800">优先优化</h3>
+                            <span class="text-xs text-orange-700">高权重 / 低UV价值</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div v-for="item in priorityMatrixSummary.optimizeList" :key="item.name" class="rounded-md bg-white/70 border border-orange-100 px-3 py-2">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="font-medium text-gray-900">{{ item.name }}</div>
+                                    <div class="text-xs font-semibold text-orange-700">{{ item.weightLabel }}</div>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">低于盘均 {{ item.gapLabel }}，影响分 {{ item.scoreLabel }}</div>
+                            </div>
+                            <div v-if="priorityMatrixSummary.optimizeList.length === 0" class="text-sm text-orange-700/80">本月没有明显的高权重低效模块。</div>
+                        </div>
+                    </div>
+                    <div class="rounded-lg border border-emerald-100 bg-emerald-50 p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-emerald-800">放量验证</h3>
+                            <span class="text-xs text-emerald-700">低权重 / 高UV价值</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div v-for="item in priorityMatrixSummary.scaleList" :key="item.name" class="rounded-md bg-white/70 border border-emerald-100 px-3 py-2">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="font-medium text-gray-900">{{ item.name }}</div>
+                                    <div class="text-xs font-semibold text-emerald-700">{{ item.weightLabel }}</div>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">高于盘均 {{ item.gapLabel }}，可放量潜力 {{ item.scoreLabel }}</div>
+                            </div>
+                            <div v-if="priorityMatrixSummary.scaleList.length === 0" class="text-sm text-emerald-700/80">本月没有明显的低权重高效模块。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
             <div class="px-6 py-5 border-b border-border flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between bg-gray-50/50">
                 <div>
@@ -867,6 +943,7 @@ const app = createApp({
 
         const currentMonth = ref(latestVisibleMonth || '202603');
         const activeTrendMetric = ref('fullLinkUv');
+        const priorityMatrixScope = ref('fullLink');
         const sortKey = ref('引导成交业绩');
         const sortDesc = ref(true);
         const activeDetail = ref(null);
@@ -879,6 +956,7 @@ const app = createApp({
 
         let trendChartInst = null;
         let sortingContributionChartInst = null;
+        let priorityMatrixChartInst = null;
         let detailChartInstances = [];
 
         const summaryMonthLabel = computed(() => formatMonthTitle(currentMonth.value));
@@ -891,6 +969,10 @@ const app = createApp({
         const getPoolBadgeClass = (pool) => pool === 'sorting'
             ? 'bg-indigo-100 text-indigo-700'
             : 'bg-rose-100 text-rose-700';
+        const priorityMatrixScopeOptions = [
+            { key: 'fullLink', label: '全链路模块' },
+            { key: 'sorting', label: '排序模块' }
+        ];
 
         const getModuleMeta = (moduleName) => moduleMetaMap[moduleName] || {
             pool: 'fullLink',
@@ -1237,6 +1319,114 @@ const app = createApp({
             };
         });
 
+        const priorityMatrixModel = computed(() => {
+            const scope = priorityMatrixScope.value;
+            const scopeLabel = getPoolLabel(scope);
+            const currRows = getPoolRows(currentMonth.value, scope);
+            if (!currRows.length) {
+                return {
+                    scope,
+                    scopeLabel,
+                    benchmark: 0,
+                    medianWeight: 0,
+                    points: [],
+                    optimizeList: [],
+                    scaleList: [],
+                    optimizeCount: 0,
+                    scaleCount: 0,
+                    medianWeightLabel: '0.00%'
+                };
+            }
+
+            const totalGmv = currRows.reduce((sum, row) => sum + (row['引导成交业绩'] || 0), 0);
+            const benchmark = totalGmv
+                ? currRows.reduce((sum, row) => {
+                    const weight = (row['引导成交业绩'] || 0) / totalGmv;
+                    return sum + weight * (row['UV(udid)价值'] || 0);
+                }, 0)
+                : 0;
+            const weights = currRows
+                .map((row) => totalGmv ? (row['引导成交业绩'] || 0) / totalGmv : 0)
+                .sort((a, b) => a - b);
+            const medianWeight = weights[Math.floor(weights.length / 2)] || 0;
+            const maxGmv = Math.max(...currRows.map((row) => row['引导成交业绩'] || 0), 1);
+
+            const points = currRows.map((row) => {
+                const moduleName = row['模块'];
+                const meta = getModuleMeta(moduleName);
+                const gmv = row['引导成交业绩'] || 0;
+                const weight = totalGmv ? gmv / totalGmv : 0;
+                const uvValue = row['UV(udid)价值'] || 0;
+                const relativeGap = benchmark ? (uvValue / benchmark) - 1 : 0;
+                const symbolSize = 18 + 42 * Math.sqrt(gmv / maxGmv);
+
+                let actionKey = 'observe';
+                let actionLabel = '观察收缩';
+                let actionColor = '#94a3b8';
+                let score = weight * Math.abs(relativeGap);
+
+                if (weight >= medianWeight && relativeGap < 0) {
+                    actionKey = 'optimize';
+                    actionLabel = '优先优化';
+                    actionColor = '#f97316';
+                    score = weight * Math.abs(relativeGap);
+                } else if (weight < medianWeight && relativeGap >= 0) {
+                    actionKey = 'scale';
+                    actionLabel = '放量验证';
+                    actionColor = '#10b981';
+                    score = (medianWeight - weight + 0.0001) * Math.abs(relativeGap);
+                } else if (weight >= medianWeight && relativeGap >= 0) {
+                    actionKey = 'core';
+                    actionLabel = '核心守盘';
+                    actionColor = '#2563eb';
+                    score = weight * (1 + relativeGap);
+                }
+
+                return {
+                    name: moduleName,
+                    poolLabel: getPoolLabel(meta.pool),
+                    weight,
+                    weightLabel: formatPct(weight),
+                    uvValue,
+                    relativeGap,
+                    gapLabel: formatSignedPct(relativeGap, 1),
+                    gmv,
+                    gmvLabel: `¥${formatNum(gmv)}`,
+                    score,
+                    scoreLabel: score.toFixed(3),
+                    actionKey,
+                    actionLabel,
+                    actionColor,
+                    symbolSize
+                };
+            });
+
+            const optimizeList = points
+                .filter((point) => point.actionKey === 'optimize')
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 3);
+
+            const scaleList = points
+                .filter((point) => point.actionKey === 'scale')
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 3);
+
+            return {
+                scope,
+                scopeLabel,
+                benchmark,
+                medianWeight,
+                medianWeightLabel: formatPct(medianWeight),
+                optimizeCount: points.filter((point) => point.actionKey === 'optimize').length,
+                scaleCount: points.filter((point) => point.actionKey === 'scale').length,
+                points,
+                optimizeList,
+                scaleList
+            };
+        });
+
+        const priorityMatrixSummary = computed(() => priorityMatrixModel.value);
+
         const trendMetricOptions = [
             { key: 'fullLinkUv', label: '全链路模块加权UV价值', pool: 'fullLink', isPct: false, color: '#e33f32', getValue: (snapshot) => snapshot.fullLink.weightedUv, getCompare: (snapshot) => snapshot.siteUV },
             { key: 'fullLinkCvr', label: '全链路模块加权支付转化率', pool: 'fullLink', isPct: true, color: '#23794b', getValue: (snapshot) => snapshot.fullLink.weightedCvr, getCompare: (snapshot) => snapshot.siteCvr },
@@ -1477,6 +1667,78 @@ const app = createApp({
                             }))
                         }
                     }
+                ]
+            });
+        };
+
+        const renderPriorityMatrixChart = () => {
+            const el = document.getElementById('priorityMatrixChart');
+            if (!el) return;
+            if (priorityMatrixChartInst) priorityMatrixChartInst.dispose();
+            priorityMatrixChartInst = echarts.init(el);
+
+            const model = priorityMatrixModel.value;
+            const points = model.points;
+            const scatterData = points.map((point) => ({
+                name: point.name,
+                value: [point.weight, point.relativeGap, point.gmv],
+                symbolSize: point.symbolSize,
+                itemStyle: { color: point.actionColor, opacity: 0.78 }
+            }));
+
+            priorityMatrixChartInst.setOption({
+                tooltip: {
+                    formatter: (p) => {
+                        const point = points.find((item) => item.name === p.data.name);
+                        if (!point) return '';
+                        return `<div style="font-weight:700;border-bottom:1px solid #e5e7eb;padding-bottom:4px;margin-bottom:4px;">${escapeHtml(point.name)}</div>
+                                动作建议: ${escapeHtml(point.actionLabel)}<br/>
+                                模块类型: ${escapeHtml(point.poolLabel)}<br/>
+                                业绩权重: ${point.weightLabel}<br/>
+                                UV价值: ¥${formatVal(point.uvValue)}<br/>
+                                相对盘均: ${point.gapLabel}<br/>
+                                引导成交业绩: ${point.gmvLabel}`;
+                    }
+                },
+                grid: { top: 50, right: 30, bottom: 60, left: 70 },
+                xAxis: {
+                    type: 'value',
+                    name: '模块业绩权重 →',
+                    min: 0,
+                    axisLabel: { formatter: (value) => `${(value * 100).toFixed(0)}%` },
+                    splitLine: { lineStyle: { color: '#f1f5f9' } }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: `相对${model.scopeLabel}盘均 UV价值 →`,
+                    axisLabel: { formatter: (value) => formatSignedPct(value, 0) },
+                    splitLine: { lineStyle: { color: '#f1f5f9' } }
+                },
+                series: [{
+                    type: 'scatter',
+                    data: scatterData,
+                    label: {
+                        show: true,
+                        formatter: (p) => p.data.name,
+                        position: 'top',
+                        color: '#475569',
+                        fontSize: 11
+                    },
+                    markLine: {
+                        silent: true,
+                        lineStyle: { type: 'dashed', color: '#94a3b8' },
+                        label: { show: false },
+                        data: [
+                            { xAxis: model.medianWeight },
+                            { yAxis: 0 }
+                        ]
+                    }
+                }],
+                graphic: [
+                    { type: 'text', right: 56, top: 12, style: { text: '核心守盘', fill: '#2563eb', font: '12px sans-serif' } },
+                    { type: 'text', left: 56, top: 12, style: { text: '放量验证', fill: '#10b981', font: '12px sans-serif' } },
+                    { type: 'text', right: 56, bottom: 28, style: { text: '优先优化', fill: '#f97316', font: '12px sans-serif' } },
+                    { type: 'text', left: 56, bottom: 28, style: { text: '观察收缩', fill: '#64748b', font: '12px sans-serif' } }
                 ]
             });
         };
@@ -1839,8 +2101,13 @@ const app = createApp({
             }
             nextTick(() => {
                 renderSortingContributionChart();
+                renderPriorityMatrixChart();
                 refreshIcons();
             });
+        });
+
+        watch(priorityMatrixScope, () => {
+            nextTick(() => renderPriorityMatrixChart());
         });
 
         watch([activeDetail, detailMetric], ([moduleName]) => {
@@ -1855,10 +2122,12 @@ const app = createApp({
             nextTick(() => {
                 renderTrendChart();
                 renderSortingContributionChart();
+                renderPriorityMatrixChart();
             });
             window.addEventListener('resize', () => {
                 trendChartInst?.resize();
                 sortingContributionChartInst?.resize();
+                priorityMatrixChartInst?.resize();
                 detailChartInstances.forEach((chart) => chart.resize());
             });
         });
@@ -1871,9 +2140,12 @@ const app = createApp({
             metrics,
             activeTrendMetric,
             trendMetricOptions,
+            priorityMatrixScope,
+            priorityMatrixScopeOptions,
             fullLinkAttributions: computed(() => fullLinkAttributionModel.value.rows),
             fullLinkAttributionSummary: fullLinkAttributionModel,
             sortingContributionSummary: sortingContributionModel,
+            priorityMatrixSummary,
             sortingPoolEvents: SORTING_POOL_EVENTS,
             tableData,
             sortedTableData,
