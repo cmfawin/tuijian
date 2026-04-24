@@ -958,6 +958,7 @@ const app = createApp({
         let sortingContributionChartInst = null;
         let priorityMatrixChartInst = null;
         let detailChartInstances = [];
+        let detailChartRenderFrame = null;
 
         const summaryMonthLabel = computed(() => formatMonthTitle(currentMonth.value));
 
@@ -1962,7 +1963,7 @@ const app = createApp({
             return row ? (row[field] || 0) : null;
         };
 
-        const renderDetailChart = (moduleName) => {
+        const renderDetailChartNow = (moduleName) => {
             detailChartInstances.forEach((chart) => chart.dispose());
             detailChartInstances = [];
             if (!moduleName) return;
@@ -2087,7 +2088,18 @@ const app = createApp({
             chartEls.forEach((el) => {
                 const chart = echarts.init(el);
                 chart.setOption(option);
+                chart.resize();
                 detailChartInstances.push(chart);
+            });
+        };
+
+        const renderDetailChart = (moduleName) => {
+            if (detailChartRenderFrame) cancelAnimationFrame(detailChartRenderFrame);
+            detailChartRenderFrame = requestAnimationFrame(() => {
+                detailChartRenderFrame = requestAnimationFrame(() => {
+                    detailChartRenderFrame = null;
+                    renderDetailChartNow(moduleName);
+                });
             });
         };
 
