@@ -4,7 +4,7 @@
 
 This repository is a static dashboard project for recommendation-performance analysis.
 
-- `千人千面数据看板.html`: main single-page dashboard. Contains layout, Vue state, and ECharts rendering.
+- `index.html`: main single-page dashboard. Contains layout, Vue state, and ECharts rendering. Use this file for future dashboard edits.
 - `data.js`: monthly metric source consumed by the dashboard. Keep only `全站` plus recommendation modules; exclude `搜索结果` and `推荐加权`.
 - `events.js`: timeline/event source for module trend charts.
 - `26.3数据.xlsx`, `推荐事件表.xlsx`: latest raw Excel inputs.

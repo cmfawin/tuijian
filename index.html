@@ -408,6 +408,33 @@
                 </div>
             </div>
             <div id="trendChart" class="w-full h-[360px]"></div>
+            <div
+                v-if="activeTrendMetric === 'fullLinkUv'"
+                class="mt-5 rounded-xl border border-rose-100 bg-rose-50/70 px-5 py-4"
+            >
+                <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                    <div class="xl:max-w-2xl">
+                        <div class="text-xl font-bold text-rose-700 tracking-tight mb-3">主要波动归因</div>
+                        <div class="text-base font-bold text-gray-900 leading-relaxed">
+                            {{ fullLinkTrendReport.headline }}
+                            <span v-if="fullLinkTrendReport.deltaRateLabel" class="text-rose-600">{{ fullLinkTrendReport.deltaRateLabel }}</span>
+                        </div>
+                    </div>
+                    <div class="grid gap-3 md:grid-cols-3 xl:min-w-[640px]">
+                        <div
+                            v-for="reason in fullLinkTrendReport.reasons"
+                            :key="reason.title"
+                            class="rounded-lg border border-white/80 bg-white px-4 py-3 shadow-sm"
+                        >
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="text-sm font-bold text-gray-900">{{ reason.title }}</div>
+                                <span class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="reason.tone">{{ reason.badge }}</span>
+                            </div>
+                            <div class="mt-2 text-xs text-gray-600 leading-6">{{ reason.detail }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section class="bg-surface rounded-xl border border-border p-6 shadow-sm">
@@ -460,7 +487,7 @@
                                     <div class="flex items-center gap-2">
                                         <i :data-lucide="isDetailOpen(row.name) ? 'chevron-down' : 'chevron-right'" class="w-4 h-4 text-gray-400 group-hover:text-primary transition-transform"></i>
                                         <div>
-                                            <div class="font-medium text-gray-900">{{ row.name }}</div>
+                                            <div class="font-medium text-gray-900">{{ getModuleDisplayName(row.name) }}</div>
                                             <div class="text-xs text-gray-500 mt-1">引导成交业绩 {{ row.currGmvLabel }}</div>
                                         </div>
                                     </div>
@@ -509,7 +536,7 @@
                                     <div class="bg-gray-50/80 p-6 shadow-inner">
                                         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-4">
                                             <div>
-                                                <h3 class="font-bold text-gray-800">{{ row.name }} - 历史表现诊断</h3>
+                                                <h3 class="font-bold text-gray-800">{{ getModuleDisplayName(row.name) }} - 历史表现诊断</h3>
                                                 <div class="text-xs text-gray-500 mt-1">{{ getModuleDetailContext(row.name).poolLabel }} · 从 {{ formatMonth(getModuleDetailContext(row.name).algorithmStartMonth) }} 起纳入口径</div>
                                             </div>
                                             <div class="flex gap-2 flex-wrap">
@@ -589,7 +616,7 @@
                 </div>
             </div>
 
-            <div id="sortingContributionChart" class="w-full h-[420px]"></div>
+            <div id="sortingContributionChart" class="w-full h-[504px]"></div>
 
             <div class="mt-5 grid gap-4 lg:grid-cols-[1.5fr_1fr]">
                 <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
@@ -599,7 +626,7 @@
                             <div class="flex items-center gap-3 min-w-0">
                                 <span class="w-3 h-3 rounded-full flex-none" :style="{ backgroundColor: item.color }"></span>
                                 <div class="min-w-0">
-                                    <div class="font-medium text-gray-900 truncate">{{ item.name }}</div>
+                                    <div class="font-medium text-gray-900 truncate">{{ getModuleDisplayName(item.name) }}</div>
                                     <div class="text-xs text-gray-500 mt-1">权重 {{ item.weightLabel }} · 对盘贡献 {{ item.contributionLabel }}</div>
                                 </div>
                             </div>
@@ -671,7 +698,7 @@
                         <div class="space-y-3">
                             <div v-for="item in priorityMatrixSummary.optimizeList" :key="item.name" class="rounded-md bg-white/70 border border-orange-100 px-3 py-2">
                                 <div class="flex items-center justify-between gap-3">
-                                    <div class="font-medium text-gray-900">{{ item.name }}</div>
+                                    <div class="font-medium text-gray-900">{{ getModuleDisplayName(item.name) }}</div>
                                     <div class="text-xs font-semibold text-orange-700">{{ item.weightLabel }}</div>
                                 </div>
                                 <div class="text-xs text-gray-500 mt-1">低于盘均 {{ item.gapLabel }}，影响分 {{ item.scoreLabel }}</div>
@@ -687,7 +714,7 @@
                         <div class="space-y-3">
                             <div v-for="item in priorityMatrixSummary.scaleList" :key="item.name" class="rounded-md bg-white/70 border border-emerald-100 px-3 py-2">
                                 <div class="flex items-center justify-between gap-3">
-                                    <div class="font-medium text-gray-900">{{ item.name }}</div>
+                                    <div class="font-medium text-gray-900">{{ getModuleDisplayName(item.name) }}</div>
                                     <div class="text-xs font-semibold text-emerald-700">{{ item.weightLabel }}</div>
                                 </div>
                                 <div class="text-xs text-gray-500 mt-1">高于盘均 {{ item.gapLabel }}，可放量潜力 {{ item.scoreLabel }}</div>
@@ -726,7 +753,7 @@
                                 <td class="px-6 py-4 text-gray-900">
                                     <div class="flex items-center gap-2">
                                         <i :data-lucide="isDetailOpen(row['模块']) ? 'chevron-down' : 'chevron-right'" class="w-4 h-4 text-gray-400 group-hover:text-primary transition-transform"></i>
-                                        <span class="font-medium">{{ row['模块'] }}</span>
+                                        <span class="font-medium">{{ getModuleDisplayName(row['模块']) }}</span>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4"><span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold" :class="getPoolBadgeClass(row.pool)">{{ row.poolLabel }}</span></td>
@@ -741,7 +768,7 @@
                                     <div class="bg-gray-50/80 p-6 shadow-inner">
                                         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-4">
                                             <div>
-                                                <h3 class="font-bold text-gray-800">{{ row['模块'] }} - 历史表现诊断</h3>
+                                                <h3 class="font-bold text-gray-800">{{ getModuleDisplayName(row['模块']) }} - 历史表现诊断</h3>
                                                 <div class="text-xs text-gray-500 mt-1">{{ row.poolLabel }} · 从 {{ formatMonth(row.algorithmStartMonth) }} 起纳入口径</div>
                                             </div>
                                             <div class="flex gap-2 flex-wrap">
@@ -799,23 +826,38 @@
 <script>
 const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
 
-const sourceData = window.dashboardSourceData?.rows || [];
-const eventSourceRows = window.moduleEventSourceData?.rows || [];
+const MODULE_NAME_CANONICAL_MAP = {
+    '购物车运费凑单浮层': '凑单浮层'
+};
+const MODULE_DISPLAY_NAMES = {
+    '凑单浮层': '购物车运费凑单浮层'
+};
+const normalizeModuleName = (name) => MODULE_NAME_CANONICAL_MAP[name] || name;
+const getModuleDisplayName = (name) => MODULE_DISPLAY_NAMES[normalizeModuleName(name)] || name;
+
+const sourceData = (window.dashboardSourceData?.rows || []).map((row) => ({
+    ...row,
+    '模块': normalizeModuleName(row['模块'])
+}));
+const eventSourceRows = (window.moduleEventSourceData?.rows || []).map((row) => ({
+    ...row,
+    module: normalizeModuleName(row.module)
+}));
 
 const RAW_EXCLUDED_MODULES = ['全站', '搜索结果', '推荐加权'];
 const SORTING_MODULES = ['凑单浮层', '分类页主商品', '券适用商品列表页', '爆款专区落地页', '首页爆款专区'];
 const SORTING_STACK_BASE_ORDER = ['首页爆款专区', '爆款专区落地页', '分类页主商品', '券适用商品列表页', '凑单浮层'];
 const SORTING_MODULE_COLORS = {
     '凑单浮层': '#2563eb',
-    '分类页主商品': '#8b5cf6',
+    '分类页主商品': '#f59e0b',
     '券适用商品列表页': '#10b981',
-    '爆款专区落地页': '#f59e0b',
+    '爆款专区落地页': '#cbd5e1',
     '首页爆款专区': '#ef4444'
 };
 const SORTING_POOL_EVENTS = [
-    { month: '202512', label: '分类页主商品纳入排序池' },
-    { month: '202601', label: '券适用商品列表页纳入排序池' },
-    { month: '202603', label: '凑单浮层纳入排序池；常买的推荐纳入全链路池' }
+    { month: '202512', label: '分类页主商品纳入排序池', chartLabel: '分类页主商品\n纳入排序池', labelTop: 42 },
+    { month: '202601', label: '券适用商品列表页纳入排序池', chartLabel: '券适用商品\n列表页纳入\n排序池', labelTop: 16 },
+    { month: '202603', label: '购物车运费凑单浮层纳入排序池', chartLabel: '购物车运费\n凑单浮层\n纳入排序池', labelTop: 16 }
 ];
 
 const formatNum = (v) => v >= 10000 ? (v / 10000).toFixed(1) + 'W' : (v || 0).toLocaleString();
@@ -932,7 +974,7 @@ const app = createApp({
             return Object.entries(eventsByMonth)
                 .sort(([a], [b]) => a.localeCompare(b))
                 .map(([month, events]) => {
-                    const moduleNames = events.map((event) => event.module).join('、');
+                    const moduleNames = events.map((event) => getModuleDisplayName(event.module)).join('、');
                     return {
                         month,
                         events,
@@ -1272,8 +1314,8 @@ const app = createApp({
             const drag = rows.find((row) => row.totalEffect < 0);
             const lift = rows.find((row) => row.totalEffect > 0);
             const overviewParts = [];
-            if (drag) overviewParts.push(`${drag.name} 是最大拖累项`);
-            if (lift) overviewParts.push(`${lift.name} 是最大对冲项`);
+            if (drag) overviewParts.push(`${getModuleDisplayName(drag.name)} 是最大拖累项`);
+            if (lift) overviewParts.push(`${getModuleDisplayName(lift.name)} 是最大对冲项`);
 
             return {
                 currentWeightedUv: currPool.weightedUv,
@@ -1285,6 +1327,83 @@ const app = createApp({
                 efficiencyLabel: formatEffectVal(efficiencyEffect, false),
                 weightLabel: formatEffectVal(weightEffect, false),
                 rows
+            };
+        });
+
+        const fullLinkTrendReport = computed(() => {
+            const currMonth = currentMonth.value;
+            const prevMonth = getPrevMonth(currMonth);
+            const currValue = currentSnapshot.value.fullLink.weightedUv;
+            const prevValue = previousSnapshot.value?.fullLink.weightedUv ?? null;
+
+            if (!prevMonth || prevValue === null) {
+                return {
+                    headline: `${formatMonthTitle(currMonth)}全链路模块加权UV价值为 ¥${formatVal(currValue)}，暂无上月可比数据。`,
+                    deltaRateLabel: '',
+                    note: '当前只能做单月观察，待下月数据接入后再生成月环比原因摘要。',
+                    reasons: [{
+                        title: '暂无环比',
+                        badge: '观察',
+                        tone: 'bg-gray-100 text-gray-600',
+                        detail: '缺少上月基准，暂不拆解波动原因。'
+                    }]
+                };
+            }
+
+            const delta = currValue - prevValue;
+            const deltaRate = prevValue ? Math.abs(delta / prevValue) : 0;
+            const direction = delta > 0.005 ? '有所回升' : (delta < -0.005 ? '有所下滑' : '基本持平');
+            const monthLabel = formatMonthTitle(currMonth);
+            const prevMonthLabel = formatMonthTitle(prevMonth);
+            const rows = fullLinkAttributionModel.value.rows || [];
+            const positiveRows = rows.filter((row) => row.totalEffect > 0).sort((a, b) => b.totalEffect - a.totalEffect);
+            const negativeRows = rows.filter((row) => row.totalEffect < 0).sort((a, b) => a.totalEffect - b.totalEffect);
+            const activeEvents = eventSourceRows.filter((event) => (
+                event.startMonth <= currMonth && (event.endMonth === '至今' || event.endMonth >= currMonth)
+            ));
+            const findEvent = (moduleName) => activeEvents.find((event) => event.module === moduleName);
+            const manualReasonMap = {
+                '202604::商详推荐': (row) => `UV价值提升 ${row.metricDeltaLabel}，商详推荐搭配相似tab位置换回相似在前，UV价值得到明显修复。`,
+                '202604::首页feeds': (row) => `UV价值提升 ${row.metricDeltaLabel}，腾讯算法灰度带来小幅提升。`,
+                '202604::搜索少结果推荐': 'UV价值下降0.23，纯向量试点效果不佳已回退，待优化后重新上线。'
+            };
+            const describeDriver = (row, event, isPositive) => {
+                const manualReason = manualReasonMap[`${currMonth}::${row.name}`];
+                if (typeof manualReason === 'function') return manualReason(row);
+                if (manualReason) return manualReason;
+                const valueMove = row.metricDelta > 0 ? `UV价值提升 ${row.metricDeltaLabel}` : `UV价值下滑 ${row.metricDeltaLabel}`;
+                const weightMove = row.weightDelta > 0 ? `业绩权重提升 ${row.weightDeltaLabel}` : `业绩权重下降 ${row.weightDeltaLabel}`;
+                const dominant = Math.abs(row.efficiencyEffect) >= Math.abs(row.weightEffect) ? valueMove : weightMove;
+                const eventText = event ? `，关联动作：${event.title}` : '';
+                const followUp = !isPositive && (!event || !event.effectReview) ? '，具体原因建议继续跟进' : '';
+                return `${dominant}${eventText}${followUp}。`;
+            };
+            const buildReason = (row, isPositive) => {
+                const event = findEvent(row.name);
+                return {
+                    title: getModuleDisplayName(row.name),
+                    badge: isPositive ? '拉升' : '拖累',
+                    tone: isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700',
+                    detail: describeDriver(row, event, isPositive)
+                };
+            };
+
+            const selected = [
+                ...positiveRows.slice(0, 2).map((row) => buildReason(row, true)),
+                ...negativeRows.slice(0, 1).map((row) => buildReason(row, false))
+            ];
+            const fallbackReasons = [{
+                title: '整体波动较小',
+                badge: '观察',
+                tone: 'bg-gray-100 text-gray-600',
+                detail: '各模块拉升与拖累相互抵消，暂无单一主导原因。'
+            }];
+            const reasons = selected.length ? selected : fallbackReasons;
+
+            return {
+                headline: `${monthLabel}全链路模块加权UV价值较${prevMonthLabel}${direction}，由 ¥${formatVal(prevValue)} 变为 ¥${formatVal(currValue)}`,
+                deltaRateLabel: `（${(deltaRate * 100).toFixed(2)}%）。`,
+                reasons
             };
         });
 
@@ -1305,7 +1424,7 @@ const app = createApp({
             const topContributor = currentRows[0] || null;
             const delta = current.weightedUv - (prev?.weightedUv || 0);
             const overview = topContributor
-                ? `${topContributor.name} 当前 UV价值 最高，为 ${topContributor.uvValueLabel}。`
+                ? `${getModuleDisplayName(topContributor.name)} 当前 UV价值 最高，为 ${topContributor.uvValueLabel}。`
                 : '当前月份暂无已生效的排序模块。';
 
             return {
@@ -1313,7 +1432,7 @@ const app = createApp({
                 currentCount: current.count,
                 delta,
                 deltaLabel: formatMetricDelta(delta, false),
-                topContributorName: topContributor ? topContributor.name : '暂无',
+                topContributorName: topContributor ? getModuleDisplayName(topContributor.name) : '暂无',
                 topContributorValue: topContributor ? topContributor.uvValueLabel : '¥0.00',
                 currentRows,
                 overview
@@ -1473,6 +1592,10 @@ const app = createApp({
             const mainData = snapshots.map((snapshot) => activeOption.getValue(snapshot));
             const compareData = activeOption.getCompare ? snapshots.map((snapshot) => activeOption.getCompare(snapshot)) : null;
             const newModuleTrendEvents = getNewModuleTrendEvents(activeOption.pool);
+            const formatTrendLabel = (value) => {
+                if (!Number.isFinite(value)) return '';
+                return activeOption.isPct ? `${(value * 100).toFixed(1)}%` : `¥${formatVal(value)}`;
+            };
 
             const series = [{
                 name: activeOption.label,
@@ -1483,6 +1606,16 @@ const app = createApp({
                 symbolSize: 8,
                 itemStyle: { color: activeOption.color },
                 lineStyle: { width: 3, color: activeOption.color },
+                label: {
+                    show: true,
+                    position: 'top',
+                    distance: 10,
+                    color: activeOption.color,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    formatter: ({ value }) => formatTrendLabel(Number(value))
+                },
+                labelLayout: { hideOverlap: true },
                 areaStyle: {
                     color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                         { offset: 0, color: `${activeOption.color}33` },
@@ -1524,9 +1657,23 @@ const app = createApp({
                     yAxisIndex: 1,
                     data: compareData,
                     smooth: true,
-                    symbol: 'none',
+                    symbol: 'circle',
+                    symbolSize: 5,
+                    showAllSymbol: true,
                     lineStyle: { type: 'dashed', color: '#9ca3af', width: 2 },
-                    itemStyle: { color: '#9ca3af' }
+                    itemStyle: { color: '#9ca3af' },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        distance: 7,
+                        color: '#64748b',
+                        fontSize: 10,
+                        backgroundColor: 'rgba(255,255,255,0.82)',
+                        borderRadius: 4,
+                        padding: [1, 3],
+                        formatter: ({ value }) => formatTrendLabel(Number(value))
+                    },
+                    labelLayout: { hideOverlap: true }
                 });
 
                 yAxes.push({
@@ -1563,14 +1710,14 @@ const app = createApp({
                             lines.push('<div style="margin:6px 0;border-top:1px solid #e5e7eb;"></div>');
                             lines.push('<div style="font-weight:700;color:#b45309;margin-bottom:4px;">新增模块</div>');
                             newModuleEvent.events.forEach((event) => {
-                                lines.push(`<div style="max-width:320px;white-space:normal;word-break:break-word;line-height:1.6;color:#475569;">${escapeHtml(event.module)}｜${formatEventDate(event.date)}｜${escapeHtml(event.title)}</div>`);
+                                lines.push(`<div style="max-width:320px;white-space:normal;word-break:break-word;line-height:1.6;color:#475569;">${escapeHtml(getModuleDisplayName(event.module))}｜${formatEventDate(event.date)}｜${escapeHtml(event.title)}</div>`);
                             });
                         }
                         return `<div style="max-width:360px;white-space:normal;word-break:break-word;line-height:1.6;">${lines.join('<br/>')}</div>`;
                     }
                 },
                 legend: { top: 0 },
-                grid: { top: 68, right: compareData ? 72 : 30, bottom: 30, left: 72 },
+                grid: { top: 88, right: compareData ? 72 : 30, bottom: 42, left: 72 },
                 xAxis: {
                     type: 'category',
                     data: xData,
@@ -1591,13 +1738,23 @@ const app = createApp({
             const xData = allMonths.map(formatMonth);
             const snapshots = allMonths.map((month) => calcMonthSnapshot(month));
             const sortingLineData = snapshots.map((snapshot) => snapshot.sorting.weightedUv);
+            const siteUvLineData = snapshots.map((snapshot) => snapshot.siteUV);
             const stackOrder = getSortingStackOrder();
             const barSeries = stackOrder.map((moduleName) => ({
-                name: moduleName,
+                name: getModuleDisplayName(moduleName),
                 type: 'bar',
                 stack: 'sortingUvValue',
                 emphasis: { focus: 'series' },
                 itemStyle: { color: SORTING_MODULE_COLORS[moduleName] || '#94a3b8', borderRadius: 0 },
+                label: {
+                    show: moduleName !== '首页爆款专区',
+                    position: 'inside',
+                    color: '#ffffff',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    formatter: ({ value }) => Number(value) ? `¥${Number(value).toFixed(1)}` : ''
+                },
+                labelLayout: { hideOverlap: true },
                 data: allMonths.map((month) => {
                     if (!isModuleActive(moduleName, month)) return 0;
                     const pool = calcWeightedByPool(month, 'sorting');
@@ -1614,14 +1771,17 @@ const app = createApp({
                         const rows = Array.isArray(params) ? params : [params];
                         const dataIndex = rows[0]?.dataIndex || 0;
                         const month = allMonths[dataIndex];
-                        const lineRow = rows.find((row) => row.seriesType === 'line');
+                        const lineRows = rows.filter((row) => row.seriesType === 'line');
                         const barRows = rows.filter((row) => row.seriesType === 'bar' && Number(row.value));
                         const lines = [`<div style="font-weight:700;margin-bottom:4px;">${formatMonth(month)}</div>`];
                         barRows.forEach((row) => {
                             lines.push(`${row.marker}${row.seriesName}: ¥${formatVal(row.value)}`);
                         });
-                        if (lineRow) {
-                            lines.push(`<div style="margin-top:6px;border-top:1px solid #e5e7eb;padding-top:6px;">${lineRow.marker}${lineRow.seriesName}: ¥${formatVal(lineRow.value)}</div>`);
+                        if (lineRows.length) {
+                            lines.push('<div style="margin-top:6px;border-top:1px solid #e5e7eb;padding-top:6px;"></div>');
+                            lineRows.forEach((row) => {
+                                lines.push(`${row.marker}${row.seriesName}: ¥${formatVal(row.value)}`);
+                            });
                         }
                         const poolEvent = SORTING_POOL_EVENTS.find((event) => event.month === month);
                         if (poolEvent) {
@@ -1631,7 +1791,7 @@ const app = createApp({
                     }
                 },
                 legend: { top: 0 },
-                grid: { top: 56, right: 40, bottom: 30, left: 60 },
+                grid: { top: 68, right: 40, bottom: 30, left: 60 },
                 xAxis: {
                     type: 'category',
                     data: xData,
@@ -1653,20 +1813,39 @@ const app = createApp({
                         smooth: true,
                         symbol: 'circle',
                         symbolSize: 8,
+                        itemStyle: { color: '#e33f32' },
+                        lineStyle: { color: '#e33f32', width: 3 },
+                        label: {
+                            show: true,
+                            position: 'top',
+                            distance: 8,
+                            color: '#e33f32',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            formatter: ({ value }) => Number.isFinite(Number(value)) ? `¥${Number(value).toFixed(1)}` : ''
+                        },
+                        labelLayout: { hideOverlap: true }
+                    },
+                    {
+                        name: '全站UV价值',
+                        type: 'line',
+                        data: siteUvLineData,
+                        smooth: true,
+                        symbol: 'circle',
+                        symbolSize: 5,
                         itemStyle: { color: '#111827' },
-                        lineStyle: { color: '#111827', width: 3 },
-                        markLine: {
-                            symbol: 'none',
-                            label: {
-                                color: '#475569',
-                                formatter: ({ data }) => data.label || ''
-                            },
-                            lineStyle: { type: 'dashed', color: '#cbd5e1' },
-                            data: SORTING_POOL_EVENTS.map((event) => ({
-                                xAxis: formatMonth(event.month),
-                                label: event.label
-                            }))
-                        }
+                        lineStyle: { color: '#111827', width: 2, type: 'dashed' },
+                        emphasis: { focus: 'series' },
+                        label: {
+                            show: true,
+                            position: 'top',
+                            distance: 6,
+                            color: '#111827',
+                            fontSize: 11,
+                            formatter: ({ value }) => Number.isFinite(Number(value)) ? `¥${Number(value).toFixed(1)}` : ''
+                        },
+                        labelLayout: { hideOverlap: true },
+                        z: 2
                     }
                 ]
             });
@@ -1681,7 +1860,8 @@ const app = createApp({
             const model = priorityMatrixModel.value;
             const points = model.points;
             const scatterData = points.map((point) => ({
-                name: point.name,
+                name: getModuleDisplayName(point.name),
+                rawName: point.name,
                 value: [point.weight, point.relativeGap, point.gmv],
                 symbolSize: point.symbolSize,
                 itemStyle: { color: point.actionColor, opacity: 0.78 }
@@ -1690,9 +1870,9 @@ const app = createApp({
             priorityMatrixChartInst.setOption({
                 tooltip: {
                     formatter: (p) => {
-                        const point = points.find((item) => item.name === p.data.name);
+                        const point = points.find((item) => item.name === p.data.rawName);
                         if (!point) return '';
-                        return `<div style="font-weight:700;border-bottom:1px solid #e5e7eb;padding-bottom:4px;margin-bottom:4px;">${escapeHtml(point.name)}</div>
+                        return `<div style="font-weight:700;border-bottom:1px solid #e5e7eb;padding-bottom:4px;margin-bottom:4px;">${escapeHtml(getModuleDisplayName(point.name))}</div>
                                 动作建议: ${escapeHtml(point.actionLabel)}<br/>
                                 模块类型: ${escapeHtml(point.poolLabel)}<br/>
                                 业绩权重: ${point.weightLabel}<br/>
@@ -2156,6 +2336,7 @@ const app = createApp({
             priorityMatrixScopeOptions,
             fullLinkAttributions: computed(() => fullLinkAttributionModel.value.rows),
             fullLinkAttributionSummary: fullLinkAttributionModel,
+            fullLinkTrendReport,
             sortingContributionSummary: sortingContributionModel,
             priorityMatrixSummary,
             sortingPoolEvents: SORTING_POOL_EVENTS,
@@ -2174,6 +2355,7 @@ const app = createApp({
             getModuleEventMarkers,
             getModuleDetailContext,
             getDetailChartOverlayStyle,
+            getModuleDisplayName,
             getPoolBadgeClass,
             formatMonth,
             formatNum,
